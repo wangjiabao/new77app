@@ -726,157 +726,72 @@ components:
         UserInfoReply:
             type: object
             properties:
-                address:
+                biwPrice:
+                    type: number
+                    format: double
+                balanceBiw:
                     type: string
-                recommendRewardTotal:
+                biwDaily:
                     type: string
-                LocationTotal:
+                buyNumTwo:
                     type: string
-                balanceUsdt:
+                buyNumThree:
                     type: string
-                withdrawAmount:
+                buyNumFour:
                     type: string
-                amount:
+                buyNumFive:
                     type: string
-                amountB:
+                buyNumOne:
                     type: string
-                inviteUrl:
+                sellNumOne:
                     type: string
-                inviteUserAddress:
+                sellNumTwo:
+                    type: string
+                sellNumThree:
+                    type: string
+                sellNumFour:
+                    type: string
+                sellNumFive:
+                    type: string
+                dailyRate:
+                    type: number
+                    format: double
+                biwDailySpeed:
+                    type: number
+                    format: double
+                currentAmountBiw:
                     type: string
                 recommendNum:
                     type: string
-                level:
+                time:
                     type: string
-                    description: 模式2
-                recommendRewardDhbTotal:
+                balanceUsdt:
                     type: string
-                amount2:
-                    type: string
-                balanceDhb:
-                    type: string
-                rewardWithdraw:
-                    type: string
-                balanceUsdt2:
-                    type: string
-                withdrawAmount2:
-                    type: string
-                totalDeposit:
-                    type: string
-                    description: 统计
-                withdrawAll:
-                    type: string
-                recommendTeamNum:
-                    type: string
-                total:
-                    type: string
-                totalHbs:
-                    type: string
-                account:
+                count:
                     type: string
                 LocationList:
                     type: array
                     items:
                         $ref: '#/components/schemas/UserInfoReply_List'
-                LocationList2:
+                withdrawList:
                     type: array
                     items:
-                        $ref: '#/components/schemas/UserInfoReply_List22'
-                locationRewardList:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/UserInfoReply_List2'
-                recommendRewardList:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/UserInfoReply_List5'
-                teamAddressList:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/UserInfoReply_List7'
-                recommendAddressList:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/UserInfoReply_List11'
-                allRewardList:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/UserInfoReply_List9'
-                depositList:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/UserInfoReply_List13'
-                withdrawRate:
-                    type: string
+                        $ref: '#/components/schemas/UserInfoReply_ListWithdraw'
         UserInfoReply_List:
             type: object
             properties:
-                createdAt:
+                current:
+                    type: string
+                currentMaxSubCurrent:
                     type: string
                 amount:
                     type: string
-                amountMax:
-                    type: string
-                Num:
-                    type: string
-        UserInfoReply_List11:
+        UserInfoReply_ListWithdraw:
             type: object
             properties:
-                address:
-                    type: string
-                Amount:
-                    type: string
-                Usdt:
-                    type: string
-                Vip:
-                    type: string
-        UserInfoReply_List13:
-            type: object
-            properties:
-                createdAt:
-                    type: string
                 amount:
                     type: string
-        UserInfoReply_List2:
-            type: object
-            properties:
-                createdAt:
-                    type: string
-                amount:
-                    type: string
-        UserInfoReply_List22:
-            type: object
-            properties:
-                createdAt:
-                    type: string
-                amount:
-                    type: string
-                amountMax:
-                    type: string
-        UserInfoReply_List5:
-            type: object
-            properties:
-                createdAt:
-                    type: string
-                amount:
-                    type: string
-        UserInfoReply_List7:
-            type: object
-            properties:
-                address:
-                    type: string
-                Amount:
-                    type: string
-                Usdt:
-                    type: string
-                Vip:
-                    type: string
-        UserInfoReply_List9:
-            type: object
-            properties:
-                createdAt:
-                    type: string
-                amount:
+                createAt:
                     type: string
         WithdrawListReply:
             type: object

@@ -113,18 +113,19 @@ func (a *AppService) UserInfo(ctx context.Context, req *v1.UserInfoRequest) (*v1
 // RecommendUpdate recommendUpdate.
 func (a *AppService) RecommendUpdate(ctx context.Context, req *v1.RecommendUpdateRequest) (*v1.RecommendUpdateReply, error) {
 	// 在上下文 context 中取出 claims 对象
-	var userId int64
-	if claims, ok := jwt.FromContext(ctx); ok {
-		c := claims.(jwt2.MapClaims)
-		if c["UserId"] == nil {
-			return nil, errors.New(500, "ERROR_TOKEN", "无效TOKEN")
-		}
-		userId = int64(c["UserId"].(float64))
-	}
-
-	return a.uuc.UpdateUserRecommend(ctx, &biz.User{
-		ID: userId,
-	}, req)
+	//var userId int64
+	//if claims, ok := jwt.FromContext(ctx); ok {
+	//	c := claims.(jwt2.MapClaims)
+	//	if c["UserId"] == nil {
+	//		return nil, errors.New(500, "ERROR_TOKEN", "无效TOKEN")
+	//	}
+	//	userId = int64(c["UserId"].(float64))
+	//}
+	//
+	//return a.uuc.UpdateUserRecommend(ctx, &biz.User{
+	//	ID: userId,
+	//}, req)
+	return nil, nil
 }
 
 // RewardList rewardList.

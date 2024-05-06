@@ -244,7 +244,44 @@ message UserInfoRequest {
 
 }
 
+
 message UserInfoReply {
+	double biwPrice = 1; // biw价格
+	string balanceBiw = 2; // biw余额
+	string biwDaily = 3; // biw24小时产出
+	int64 buyNumTwo = 4; // 可购买数量1
+	int64 buyNumThree = 5; // 可购买数量2
+	int64 buyNumFour = 6; // 可购买数量3
+	int64 buyNumFive = 7; // 可购买数量4
+	int64 buyNumOne = 8; // 可购买数量5
+	int64 sellNumOne = 9; // 卖出数量1
+	int64 sellNumTwo = 10; // 卖出数量2
+	int64 sellNumThree = 11; // 卖出数量3
+	int64 sellNumFour = 12; // 卖出数量4
+	int64 sellNumFive = 13; // 卖出数量5
+	double daily_rate = 14; // 每日静态收益
+	double biwDailySpeed = 15; // biw产出速率
+	string currentAmountBiw = 16; // 待领取biw收益
+	int64 recommendNum = 17; // 邀请数量
+	int64 time = 18; // 服务器时间
+	string balanceUsdt = 19; // usdt余额
+	int64 count = 20; // 出局次数
+
+	repeated List LocationList = 52; // 购买记录
+	message List {
+		string current = 2; // 收益
+		string currentMaxSubCurrent = 4; // 挖矿
+		string amount = 1; // 节点
+	}
+
+	repeated ListWithdraw withdrawList = 66; // 团队列表
+	message ListWithdraw {
+		string amount = 2; // 提现金额
+		string createAt = 1; // 提现时间
+	}
+}
+
+message UserInfo1Reply {
 	string address = 1; // 地址
 	string recommendRewardTotal = 92; // 直推奖总
 	string LocationTotal = 15; // 代数总奖
