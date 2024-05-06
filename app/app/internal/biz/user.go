@@ -438,9 +438,14 @@ func (uuc *UserUseCase) UpdateUserRecommend(ctx context.Context, u *User, req *v
 
 func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoReply, error) {
 	var (
-		err    error
-		myUser *User
-		//userRecommend *UserRecommend
+		err                   error
+		myUser                *User
+		userRecommend         *UserRecommend
+		myCode                string
+		encodeString          string
+		myUserRecommendUserId int64
+		inviteUserAddress     string
+		myRecommendUser       *User
 		//userInfo      *UserInfo
 		configs     []*Config
 		locations   []*LocationNew
@@ -501,28 +506,51 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		return nil, err
 	}
 
+	userRecommend, err = uuc.urRepo.GetUserRecommendByUserId(ctx, myUser.ID)
+	if nil == userRecommend {
+		return nil, err
+	}
+
+	myCode = "D" + strconv.FormatInt(myUser.ID, 10)
+	codeByte := []byte(myCode)
+	encodeString = base64.StdEncoding.EncodeToString(codeByte)
+	if "" != userRecommend.RecommendCode {
+		tmpRecommendUserIds := strings.Split(userRecommend.RecommendCode, "D")
+		if 2 <= len(tmpRecommendUserIds) {
+			myUserRecommendUserId, _ = strconv.ParseInt(tmpRecommendUserIds[len(tmpRecommendUserIds)-1], 10, 64) // 最后一位是直推人
+		}
+		myRecommendUser, err = uuc.repo.GetUserById(ctx, myUserRecommendUserId)
+		if nil != err {
+			return nil, err
+		}
+		inviteUserAddress = myRecommendUser.Address
+		myCode = userRecommend.RecommendCode + myCode
+	}
+
 	return &v1.UserInfoReply{
-		BiwPrice:         float64(bPrice) / float64(bPriceBase),
-		BalanceBiw:       fmt.Sprintf("%.4f", float64(userBalance.BalanceDhb)/float64(10000000000)),
-		BalanceUsdt:      fmt.Sprintf("%.4f", float64(userBalance.BalanceUsdt)/float64(10000000000)),
-		BiwDaily:         "",
-		BuyNumTwo:        0,
-		BuyNumThree:      0,
-		BuyNumFour:       0,
-		BuyNumFive:       0,
-		BuyNumOne:        0,
-		SellNumOne:       0,
-		SellNumTwo:       0,
-		SellNumThree:     0,
-		SellNumFour:      0,
-		SellNumFive:      0,
-		DailyRate:        0,
-		BiwDailySpeed:    0,
-		CurrentAmountBiw: "",
-		RecommendNum:     0,
-		Time:             0,
-		LocationList:     myLocations,
-		WithdrawList:     nil,
+		BiwPrice:          float64(bPrice) / float64(bPriceBase),
+		BalanceBiw:        fmt.Sprintf("%.4f", float64(userBalance.BalanceDhb)/float64(10000000000)),
+		BalanceUsdt:       fmt.Sprintf("%.4f", float64(userBalance.BalanceUsdt)/float64(10000000000)),
+		BiwDaily:          "",
+		BuyNumTwo:         0,
+		BuyNumThree:       0,
+		BuyNumFour:        0,
+		BuyNumFive:        0,
+		BuyNumOne:         0,
+		SellNumOne:        0,
+		SellNumTwo:        0,
+		SellNumThree:      0,
+		SellNumFour:       0,
+		SellNumFive:       0,
+		DailyRate:         0,
+		BiwDailySpeed:     0,
+		CurrentAmountBiw:  "",
+		RecommendNum:      0,
+		Time:              0,
+		LocationList:      myLocations,
+		WithdrawList:      nil,
+		InviteUserAddress: inviteUserAddress,
+		InviteUrl:         encodeString,
 	}, nil
 }
 

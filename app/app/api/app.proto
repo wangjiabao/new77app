@@ -266,6 +266,8 @@ message UserInfoReply {
 	int64 time = 18; // 服务器时间
 	string balanceUsdt = 19; // usdt余额
 	int64 count = 20; // 出局次数
+	string inviteUrl = 21; // 邀请链接
+	string inviteUserAddress = 22; // 直推人地址
 
 	repeated List LocationList = 52; // 购买记录
 	message List {

@@ -769,6 +769,10 @@ components:
                     type: string
                 count:
                     type: string
+                inviteUrl:
+                    type: string
+                inviteUserAddress:
+                    type: string
                 LocationList:
                     type: array
                     items:

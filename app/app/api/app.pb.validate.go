@@ -866,6 +866,10 @@ func (m *UserInfoReply) validate(all bool) error {
 
 	// no validation rules for Count
 
+	// no validation rules for InviteUrl
+
+	// no validation rules for InviteUserAddress
+
 	for idx, item := range m.GetLocationList() {
 		_, _ = idx, item
 
