@@ -246,6 +246,20 @@ func (lr *LocationRepo) GetLocationsByUserId2(ctx context.Context, userId int64)
 	return res, nil
 }
 
+// GetAllLocationsCount .
+func (lr *LocationRepo) GetAllLocationsCount(ctx context.Context, usdt int64) int64 {
+	var count = int64(-1)
+	if err := lr.data.DB(ctx).Table("location_new").Where("usdt=?", usdt).Count(&count).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return count
+		}
+
+		return count
+	}
+
+	return count
+}
+
 // GetLocationsByUserId .
 func (lr *LocationRepo) GetLocationsByUserId(ctx context.Context, userId int64) ([]*biz.LocationNew, error) {
 	var locations []*LocationNew

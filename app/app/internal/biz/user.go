@@ -453,25 +453,45 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		myLocations []*v1.UserInfoReply_List
 		bPrice      int64
 		bPriceBase  int64
+		buyOne      int64
+		buyTwo      int64
+		buyThree    int64
+		buyFour     int64
+		buyFive     int64
 	)
 
 	// 配置
 	configs, err = uuc.configRepo.GetConfigByKeys(ctx,
 		"b_price",
-		"buy_num_one",
-		"buy_num_two",
-		"buy_num_three",
-		"buy_num_four",
-		"buy_num_five",
+		"b_price_base",
+		"buy_one",
+		"buy_two",
+		"buy_three",
+		"buy_four",
+		"buy_five",
 	)
 	if nil != configs {
 		for _, vConfig := range configs {
 			if "b_price" == vConfig.KeyName {
 				bPrice, _ = strconv.ParseInt(vConfig.Value, 10, 64)
 			}
-
 			if "b_price_base" == vConfig.KeyName {
 				bPriceBase, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "buy_one" == vConfig.KeyName {
+				buyOne, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "buy_two" == vConfig.KeyName {
+				buyTwo, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "buy_three" == vConfig.KeyName {
+				buyThree, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "buy_four" == vConfig.KeyName {
+				buyFour, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "buy_five" == vConfig.KeyName {
+				buyFive, _ = strconv.ParseInt(vConfig.Value, 10, 64)
 			}
 		}
 	}
@@ -484,13 +504,30 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	//if nil != err {
 	//	return nil, err
 	//}
+
+	count1 := uuc.locationRepo.GetAllLocationsCount(ctx, 300)
+	count2 := uuc.locationRepo.GetAllLocationsCount(ctx, 1000)
+	count3 := uuc.locationRepo.GetAllLocationsCount(ctx, 3000)
+	count4 := uuc.locationRepo.GetAllLocationsCount(ctx, 5000)
+	count5 := uuc.locationRepo.GetAllLocationsCount(ctx, 10000)
+
 	locations, err = uuc.locationRepo.GetLocationsByUserId(ctx, myUser.ID)
+	if nil != err {
+		return nil, err
+	}
+	var (
+		currentAmountBiw string
+	)
 	myLocations = make([]*v1.UserInfoReply_List, 0)
 	if nil != locations && 0 < len(locations) {
 		for _, v := range locations {
 			var tmp int64
 			if v.Current <= v.CurrentMax {
 				tmp = v.CurrentMax - v.Current
+			}
+
+			if "running" == v.Status {
+				currentAmountBiw = fmt.Sprintf("%.4f", float64(tmp)/float64(10000000000))
 			}
 
 			myLocations = append(myLocations, &v1.UserInfoReply_List{
@@ -527,28 +564,59 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		myCode = userRecommend.RecommendCode + myCode
 	}
 
+	var (
+		myUserRecommend []*UserRecommend
+	)
+	myUserRecommend, err = uuc.urRepo.GetUserRecommendByCode(ctx, myCode)
+	if nil == userRecommend {
+		return nil, err
+	}
+
+	var (
+		withdraws      []*Withdraw
+		withdrawAmount int64
+		withdrawList   []*v1.UserInfoReply_ListWithdraw
+	)
+
+	withdraws, err = uuc.ubRepo.GetWithdrawByUserId2(ctx, user.ID)
+	if nil != err {
+		return nil, err
+	}
+
+	withdrawList = make([]*v1.UserInfoReply_ListWithdraw, 0)
+	for _, v := range withdraws {
+		if "usdt" == v.Type {
+			withdrawAmount += v.RelAmount
+		}
+
+		withdrawList = append(withdrawList, &v1.UserInfoReply_ListWithdraw{
+			Amount:   fmt.Sprintf("%.4f", float64(v.RelAmount)/float64(10000000000)),
+			CreateAt: v.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
+		})
+	}
+
 	return &v1.UserInfoReply{
 		BiwPrice:          float64(bPrice) / float64(bPriceBase),
 		BalanceBiw:        fmt.Sprintf("%.4f", float64(userBalance.BalanceDhb)/float64(10000000000)),
 		BalanceUsdt:       fmt.Sprintf("%.4f", float64(userBalance.BalanceUsdt)/float64(10000000000)),
 		BiwDaily:          "",
-		BuyNumTwo:         0,
-		BuyNumThree:       0,
-		BuyNumFour:        0,
-		BuyNumFive:        0,
-		BuyNumOne:         0,
-		SellNumOne:        0,
-		SellNumTwo:        0,
-		SellNumThree:      0,
-		SellNumFour:       0,
-		SellNumFive:       0,
+		BuyNumTwo:         count2,
+		BuyNumThree:       count3,
+		BuyNumFour:        count4,
+		BuyNumFive:        count5,
+		BuyNumOne:         count1,
+		SellNumOne:        buyOne - count1,
+		SellNumTwo:        buyTwo - count2,
+		SellNumThree:      buyThree - count3,
+		SellNumFour:       buyFour - count4,
+		SellNumFive:       buyFive - count5,
 		DailyRate:         0,
 		BiwDailySpeed:     0,
-		CurrentAmountBiw:  "",
-		RecommendNum:      0,
-		Time:              0,
+		CurrentAmountBiw:  currentAmountBiw,
+		RecommendNum:      int64(len(myUserRecommend)),
+		Time:              time.Now().UTC().Add(8 * time.Hour).Unix(),
 		LocationList:      myLocations,
-		WithdrawList:      nil,
+		WithdrawList:      withdrawList,
 		InviteUserAddress: inviteUserAddress,
 		InviteUrl:         encodeString,
 	}, nil
@@ -1030,7 +1098,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 	//	return nil, errors.New(500, "密码错误", "密码错误")
 	//}
 
-	if "usdt" != req.SendBody.Type && "usdt_2" != req.SendBody.Type {
+	if "usdt" != req.SendBody.Type {
 		return &v1.WithdrawReply{
 			Status: "fail",
 		}, nil
@@ -1073,63 +1141,63 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 		}
 	}
 
-	if "usdt_2" == req.SendBody.Type {
-		if userBalance.BalanceUsdt2 < amount {
-			return &v1.WithdrawReply{
-				Status: "fail",
-			}, nil
-		}
+	//if "usdt_2" == req.SendBody.Type {
+	//	if userBalance.BalanceUsdt2 < amount {
+	//		return &v1.WithdrawReply{
+	//			Status: "fail",
+	//		}, nil
+	//	}
+	//
+	//	if 100000000000 > amount {
+	//		return &v1.WithdrawReply{
+	//			Status: "fail",
+	//		}, nil
+	//	}
+	//}
 
-		if 100000000000 > amount {
-			return &v1.WithdrawReply{
-				Status: "fail",
-			}, nil
-		}
-	}
-
-	var userRecommend *UserRecommend
-	userRecommend, err = uuc.urRepo.GetUserRecommendByUserId(ctx, user.ID)
-	if nil == userRecommend {
-		return &v1.WithdrawReply{
-			Status: "信息错误",
-		}, nil
-	}
-
-	var (
-		tmpRecommendUserIds    []string
-		tmpRecommendUserIdsInt []int64
-	)
-	if "" != userRecommend.RecommendCode {
-		tmpRecommendUserIds = strings.Split(userRecommend.RecommendCode, "D")
-	}
-	lastKey := len(tmpRecommendUserIds) - 1
-	if 1 <= lastKey {
-		for i := 0; i <= lastKey; i++ {
-			// 有占位信息，推荐人推荐人的上一代
-			if lastKey-i <= 0 {
-				break
-			}
-
-			tmpMyTopUserRecommendUserId, _ := strconv.ParseInt(tmpRecommendUserIds[lastKey-i], 10, 64) // 最后一位是直推人
-			tmpRecommendUserIdsInt = append(tmpRecommendUserIdsInt, tmpMyTopUserRecommendUserId)
-		}
-	}
+	//var userRecommend *UserRecommend
+	//userRecommend, err = uuc.urRepo.GetUserRecommendByUserId(ctx, user.ID)
+	//if nil == userRecommend {
+	//	return &v1.WithdrawReply{
+	//		Status: "信息错误",
+	//	}, nil
+	//}
+	//
+	//var (
+	//	tmpRecommendUserIds    []string
+	//	tmpRecommendUserIdsInt []int64
+	//)
+	//if "" != userRecommend.RecommendCode {
+	//	tmpRecommendUserIds = strings.Split(userRecommend.RecommendCode, "D")
+	//}
+	//lastKey := len(tmpRecommendUserIds) - 1
+	//if 1 <= lastKey {
+	//	for i := 0; i <= lastKey; i++ {
+	//		// 有占位信息，推荐人推荐人的上一代
+	//		if lastKey-i <= 0 {
+	//			break
+	//		}
+	//
+	//		tmpMyTopUserRecommendUserId, _ := strconv.ParseInt(tmpRecommendUserIds[lastKey-i], 10, 64) // 最后一位是直推人
+	//		tmpRecommendUserIdsInt = append(tmpRecommendUserIdsInt, tmpMyTopUserRecommendUserId)
+	//	}
+	//}
 
 	// 配置
-	var (
-		configs      []*Config
-		withdrawRate int64
-	)
-	configs, err = uuc.configRepo.GetConfigByKeys(ctx,
-		"withdraw_rate",
-	)
-	if nil != configs {
-		for _, vConfig := range configs {
-			if "withdraw_rate" == vConfig.KeyName {
-				withdrawRate, _ = strconv.ParseInt(vConfig.Value, 10, 64)
-			}
-		}
-	}
+	//var (
+	//	configs      []*Config
+	//	withdrawRate int64
+	//)
+	//configs, err = uuc.configRepo.GetConfigByKeys(ctx,
+	//	"withdraw_rate",
+	//)
+	//if nil != configs {
+	//	for _, vConfig := range configs {
+	//		if "withdraw_rate" == vConfig.KeyName {
+	//			withdrawRate, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+	//		}
+	//	}
+	//}
 
 	if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
 
@@ -1138,22 +1206,23 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 			if nil != err {
 				return err
 			}
-			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount, amount-amount*withdrawRate/100, amount*withdrawRate/100, req.SendBody.Type)
-			if nil != err {
-				return err
-			}
-
-		} else if "usdt_2" == req.SendBody.Type {
-			err = uuc.ubRepo.WithdrawUsdt3(ctx, user.ID, amount) // 提现
-			if nil != err {
-				return err
-			}
-			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount, amount-amount*withdrawRate/100, amount*withdrawRate/100, req.SendBody.Type)
+			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount, amount, 0, req.SendBody.Type)
 			if nil != err {
 				return err
 			}
 
 		}
+		//else if "usdt_2" == req.SendBody.Type {
+		//	err = uuc.ubRepo.WithdrawUsdt3(ctx, user.ID, amount) // 提现
+		//	if nil != err {
+		//		return err
+		//	}
+		//	_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount, amount-amount*withdrawRate/100, amount*withdrawRate/100, req.SendBody.Type)
+		//	if nil != err {
+		//		return err
+		//	}
+		//
+		//}
 		//else if "dhb" == req.SendBody.Type {
 		//	err = uuc.ubRepo.WithdrawDhb(ctx, user.ID, amount) // 提现
 		//	if nil != err {

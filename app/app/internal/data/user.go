@@ -1462,21 +1462,21 @@ func (ub *UserBalanceRepo) GreateWithdraw(ctx context.Context, userId int64, rel
 		return nil, errors.New(500, "CREATE_WITHDRAW_ERROR", "提现记录创建失败")
 	}
 
-	var (
-		reward Reward
-		err    error
-	)
-
-	reward.UserId = 999999999
-	reward.Amount = amountFee
-	reward.BalanceRecordId = 999999999
-	reward.Type = "withdraw" // 本次分红的行为类型
-	reward.TypeRecordId = withdraw.ID
-	reward.Reason = "system_reward" // 给我分红的理由
-	err = ub.data.DB(ctx).Table("reward").Create(&reward).Error
-	if err != nil {
-		return nil, errors.New(500, "CREATE_WITHDRAW_ERROR", "提现记录创建失败")
-	}
+	//var (
+	//	reward Reward
+	//	err    error
+	//)
+	//
+	//reward.UserId = 999999999
+	//reward.Amount = amountFee
+	//reward.BalanceRecordId = 999999999
+	//reward.Type = "withdraw" // 本次分红的行为类型
+	//reward.TypeRecordId = withdraw.ID
+	//reward.Reason = "system_reward" // 给我分红的理由
+	//err = ub.data.DB(ctx).Table("reward").Create(&reward).Error
+	//if err != nil {
+	//	return nil, errors.New(500, "CREATE_WITHDRAW_ERROR", "提现记录创建失败")
+	//}
 
 	return &biz.Withdraw{
 		ID:              withdraw.ID,
