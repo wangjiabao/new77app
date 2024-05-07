@@ -505,11 +505,11 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	//	return nil, err
 	//}
 
-	count1 := uuc.locationRepo.GetAllLocationsCount(ctx, 300)
-	count2 := uuc.locationRepo.GetAllLocationsCount(ctx, 1000)
-	count3 := uuc.locationRepo.GetAllLocationsCount(ctx, 3000)
-	count4 := uuc.locationRepo.GetAllLocationsCount(ctx, 5000)
-	count5 := uuc.locationRepo.GetAllLocationsCount(ctx, 10000)
+	count1 := uuc.locationRepo.GetAllLocationsCount(ctx, 3000000000000)
+	count2 := uuc.locationRepo.GetAllLocationsCount(ctx, 10000000000000)
+	count3 := uuc.locationRepo.GetAllLocationsCount(ctx, 30000000000000)
+	count4 := uuc.locationRepo.GetAllLocationsCount(ctx, 50000000000000)
+	count5 := uuc.locationRepo.GetAllLocationsCount(ctx, 100000000000000)
 
 	locations, err = uuc.locationRepo.GetLocationsByUserId(ctx, myUser.ID)
 	if nil != err {
