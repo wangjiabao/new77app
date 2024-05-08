@@ -709,10 +709,10 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	for _, userLocationBef := range userLocationsBef {
 		rewardLocationYes += userLocationBef.Usdt
 	}
-	if totalRewardYes > 0 {
+	if rewardLocationYes > 0 {
 		totalRewardYes = rewardLocationYes / 100 * total
 	}
-	if totalRewardBef > 0 {
+	if rewardLocationBef > 0 {
 		totalRewardBef = rewardLocationBef / 100 / 100 * 30 * total
 	}
 
