@@ -731,6 +731,27 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		if 0 >= userRecommendFour.Total {
 			continue
 		}
+		var (
+			locationsFour []*LocationNew
+		)
+		locationsFour, err = uuc.locationRepo.GetLocationsByUserId(ctx, myUser.ID)
+		if nil != err {
+			continue
+		}
+		if nil == locationsFour || 0 >= len(locationsFour) {
+			continue
+		}
+		tmpStatusRunning := false
+		var tmpUsdt int64
+		for _, vLocationsFour := range locationsFour {
+			if "running" == vLocationsFour.Status {
+				tmpStatusRunning = true
+				tmpUsdt = vLocationsFour.Usdt
+			}
+		}
+		if !tmpStatusRunning {
+			continue
+		}
 
 		var (
 			tmpMyRecommendAmount int64
@@ -746,8 +767,9 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		}
 
 		fourList = append(fourList, &v1.UserInfoReply_ListFour{
-			Amount: userRecommendFour.Total,
-			Reward: fmt.Sprintf("%.4f", float64(tmpMyRecommendAmount)/float64(10000000000)),
+			Location: fmt.Sprintf("%.4f", float64(tmpUsdt)/float64(10000000000)),
+			Amount:   userRecommendFour.Total,
+			Reward:   fmt.Sprintf("%.4f", float64(tmpMyRecommendAmount)/float64(10000000000)),
 		})
 	}
 

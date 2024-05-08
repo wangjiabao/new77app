@@ -8017,6 +8017,8 @@ func (m *UserInfoReply_ListFour) validate(all bool) error {
 
 	// no validation rules for Reward
 
+	// no validation rules for Location
+
 	if len(errors) > 0 {
 		return UserInfoReply_ListFourMultiError(errors)
 	}

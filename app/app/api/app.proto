@@ -292,6 +292,7 @@ message UserInfoReply {
 	message ListFour {
 		int64 amount = 2; // 直推金额
 		string reward = 3; // 奖励
+		string location = 4;
 	}
 
 	int64 areaMax = 30; // 大区业绩
