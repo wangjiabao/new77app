@@ -290,7 +290,6 @@ message UserInfoReply {
 	string fourRewardPoolYes = 24; // 每日前四名奖励池沉淀数量
 	repeated ListFour four = 50; // 每日前四名
 	message ListFour {
-		string created_at = 1;
 		string amount = 2; // 直推金额
 		string reward = 3; // 奖励
 	}
@@ -304,6 +303,13 @@ message UserInfoReply {
 	string locationCurrentSub = 36; //已产出
 	string withdrawTotal = 37; // 提现
 	string locationUsdtAll = 38; // 认购
+
+	repeated ListReward listReward = 39; // 收益列表，挖矿，分享，前四名
+	message ListReward {
+		string createdAt = 1; // 时间
+		int64 type = 2; // 类型，挖矿收益 type=1,分享 type=2, 前四名type =3,矩阵type=4
+		string reward = 3; // 数量
+	}
 }
 
 message UserInfo1Reply {

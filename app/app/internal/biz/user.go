@@ -594,10 +594,10 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 			CreateAt: v.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
 		})
 	}
-	var (
-		fourList []*v1.UserInfoReply_ListFour
-	)
-	fourList = make([]*v1.UserInfoReply_ListFour, 0)
+
+	fourList := make([]*v1.UserInfoReply_ListFour, 0)
+	listReward := make([]*v1.UserInfoReply_ListReward, 0)
+
 	return &v1.UserInfoReply{
 		BiwPrice:              float64(bPrice) / float64(bPriceBase),
 		BalanceBiw:            fmt.Sprintf("%.4f", float64(userBalance.BalanceDhb)/float64(10000000000)),
@@ -639,6 +639,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		LocationCurrentSub:    "",
 		WithdrawTotal:         "",
 		LocationUsdtAll:       "",
+		ListReward:            listReward,
 	}, nil
 }
 

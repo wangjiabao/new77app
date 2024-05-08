@@ -815,6 +815,10 @@ components:
                     type: string
                 locationUsdtAll:
                     type: string
+                listReward:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/UserInfoReply_ListReward'
         UserInfoReply_List:
             type: object
             properties:
@@ -827,9 +831,16 @@ components:
         UserInfoReply_ListFour:
             type: object
             properties:
+                amount:
+                    type: string
+                reward:
+                    type: string
+        UserInfoReply_ListReward:
+            type: object
+            properties:
                 createdAt:
                     type: string
-                amount:
+                type:
                     type: string
                 reward:
                     type: string
