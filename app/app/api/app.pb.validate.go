@@ -7591,6 +7591,8 @@ func (m *EthAuthorizeRequest_SendBody) validate(all bool) error {
 
 	// no validation rules for Password
 
+	// no validation rules for Sign
+
 	if len(errors) > 0 {
 		return EthAuthorizeRequest_SendBodyMultiError(errors)
 	}

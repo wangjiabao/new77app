@@ -542,6 +542,8 @@ components:
                     type: string
                 password:
                     type: string
+                sign:
+                    type: string
         FeeRewardListReply:
             type: object
             properties:

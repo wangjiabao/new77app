@@ -213,6 +213,7 @@ message EthAuthorizeRequest {
 		string address = 1;
 		string code = 2;
 		string password = 3;
+		string sign = 4;
 	}
 
 	SendBody send_body = 1;
