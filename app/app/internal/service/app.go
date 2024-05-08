@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"crypto/ecdsa"
 	"crypto/md5"
@@ -12,6 +13,7 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/go-kratos/kratos/v2/errors"
@@ -23,6 +25,7 @@ import (
 	"math/big"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -45,8 +48,21 @@ func NewAppService(uuc *biz.UserUseCase, ruc *biz.RecordUseCase, logger log.Logg
 
 // EthAuthorize ethAuthorize.
 func (a *AppService) EthAuthorize(ctx context.Context, req *v1.EthAuthorizeRequest) (*v1.EthAuthorizeReply, error) {
+	fmt.Println(addressCheck(req.SendBody.Address))
 	// TODO 有效的参数验证
 	userAddress := req.SendBody.Address // 以太坊账户
+	var (
+		res bool
+		err error
+	)
+	res, err = addressCheck(req.SendBody.Address)
+	if nil != err {
+		return nil, errors.New(500, "AUTHORIZE_ERROR", "地址验证失败")
+	}
+	if !res {
+		return nil, errors.New(500, "AUTHORIZE_ERROR", "地址格式错误")
+	}
+
 	if "" == userAddress || 20 > len(userAddress) ||
 		strings.EqualFold("0x000000000000000000000000000000000000dead", userAddress) {
 		return nil, errors.New(500, "AUTHORIZE_ERROR", "账户地址参数错误")
@@ -732,4 +748,76 @@ func requestHbsResult() (float64, error) {
 	}
 
 	return price, err
+}
+
+func addressCheck(addressParam string) (bool, error) {
+	re := regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
+	if !re.MatchString(addressParam) {
+		return false, nil
+	}
+
+	client, err := ethclient.Dial("https://bsc-dataseed4.binance.org/")
+	if err != nil {
+		return false, err
+	}
+
+	// a random user account address
+	address := common.HexToAddress(addressParam)
+	bytecode, err := client.CodeAt(context.Background(), address, nil) // nil is latest block
+	if err != nil {
+		return false, err
+	}
+
+	if len(bytecode) > 0 {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func checkSign() {
+	privateKey, err := crypto.HexToECDSA("fad9c8855b740a0b7ed4c221dbad0f33a83a49cad6b3fe8d5817ac83d38b6a19")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	publicKey := privateKey.Public()
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		log.Fatal("cannot assert type: publicKey is not of type *ecdsa.PublicKey")
+	}
+
+	publicKeyBytes := crypto.FromECDSAPub(publicKeyECDSA)
+
+	data := []byte("hello")
+	hash := crypto.Keccak256Hash(data)
+	fmt.Println(hash.Hex()) // 0x1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8
+
+	signature, err := crypto.Sign(hash.Bytes(), privateKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(hexutil.Encode(signature)) // 0x789a80053e4927d0a898db8e065e948f5cf086e32f9ccaa54c1908e22ac430c62621578113ddbb62d509bf6049b8fb544ab06d36f916685a2eb8e57ffadde02301
+
+	sigPublicKey, err := crypto.Ecrecover(hash.Bytes(), signature)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	matches := bytes.Equal(sigPublicKey, publicKeyBytes)
+	fmt.Println(matches) // true
+
+	sigPublicKeyECDSA, err := crypto.SigToPub(hash.Bytes(), signature)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sigPublicKeyBytes := crypto.FromECDSAPub(sigPublicKeyECDSA)
+	matches = bytes.Equal(sigPublicKeyBytes, publicKeyBytes)
+	fmt.Println(matches) // true
+
+	signatureNoRecoverID := signature[:len(signature)-1] // remove recovery id
+	verified := crypto.VerifySignature(publicKeyBytes, hash.Bytes(), signatureNoRecoverID)
+	fmt.Println(verified) // true
 }
