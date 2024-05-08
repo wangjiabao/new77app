@@ -770,7 +770,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		BiwDailySpeed:         0,
 		CurrentAmountBiw:      currentAmountBiw,
 		RecommendNum:          int64(len(myUserRecommend)),
-		Time:                  time.Now().Add(8 * time.Hour).Unix(),
+		Time:                  time.Now().Unix(),
 		LocationList:          myLocations,
 		WithdrawList:          withdrawList,
 		InviteUserAddress:     inviteUserAddress,
