@@ -48,7 +48,7 @@ func NewAppService(uuc *biz.UserUseCase, ruc *biz.RecordUseCase, logger log.Logg
 
 // EthAuthorize ethAuthorize.
 func (a *AppService) EthAuthorize(ctx context.Context, req *v1.EthAuthorizeRequest) (*v1.EthAuthorizeReply, error) {
-	fmt.Println(addressCheck(req.SendBody.Address))
+	//fmt.Println(addressCheck(req.SendBody.Address))
 	// TODO 有效的参数验证
 	userAddress := req.SendBody.Address // 以太坊账户
 	var (
