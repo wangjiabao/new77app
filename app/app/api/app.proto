@@ -281,6 +281,29 @@ message UserInfoReply {
 		string amount = 2; // 提现金额
 		string createAt = 1; // 提现时间
 	}
+
+	string locationReward = 25; // 挖矿收益 ,挖矿
+	string recommendReward = 26; // 分享收益
+	string fourReward = 27; // 前四名收益
+	string areaReward = 28; // 矩阵收益
+	string fourRewardPool = 23; // 每日前四名奖励池数量
+	string fourRewardPoolYes = 24; // 每日前四名奖励池沉淀数量
+	repeated ListFour four = 50; // 每日前四名
+	message ListFour {
+		string created_at = 1;
+		string amount = 2; // 直推金额
+		string reward = 3; // 奖励
+	}
+
+	string areaMax = 30; // 大区业绩
+	string areaMin = 31; // 小区业绩
+	string areaAll = 32; // 总业绩
+	string recommendTotal = 33; // 直推人数
+	string locationUsdt = 34; // 节点
+	string locationCurrentMaxSub = 35; //待领取，待产出
+	string locationCurrentSub = 36; //已产出
+	string withdrawTotal = 37; // 提现
+	string locationUsdtAll = 38; // 认购
 }
 
 message UserInfo1Reply {

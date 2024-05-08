@@ -781,6 +781,40 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/UserInfoReply_ListWithdraw'
+                locationReward:
+                    type: string
+                recommendReward:
+                    type: string
+                fourReward:
+                    type: string
+                areaReward:
+                    type: string
+                fourRewardPool:
+                    type: string
+                fourRewardPoolYes:
+                    type: string
+                four:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/UserInfoReply_ListFour'
+                areaMax:
+                    type: string
+                areaMin:
+                    type: string
+                areaAll:
+                    type: string
+                recommendTotal:
+                    type: string
+                locationUsdt:
+                    type: string
+                locationCurrentMaxSub:
+                    type: string
+                locationCurrentSub:
+                    type: string
+                withdrawTotal:
+                    type: string
+                locationUsdtAll:
+                    type: string
         UserInfoReply_List:
             type: object
             properties:
@@ -789,6 +823,15 @@ components:
                 currentMaxSubCurrent:
                     type: string
                 amount:
+                    type: string
+        UserInfoReply_ListFour:
+            type: object
+            properties:
+                createdAt:
+                    type: string
+                amount:
+                    type: string
+                reward:
                     type: string
         UserInfoReply_ListWithdraw:
             type: object
