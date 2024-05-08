@@ -256,6 +256,28 @@ func (a *AppService) PasswordChange(ctx context.Context, req *v1.PasswordChangeR
 	}, nil
 }
 
+// Exchange Exchange.
+func (a *AppService) Exchange(ctx context.Context, req *v1.ExchangeRequest) (*v1.ExchangeReply, error) {
+	var (
+		userId int64
+	)
+	if claims, ok := jwt.FromContext(ctx); ok {
+		c := claims.(jwt2.MapClaims)
+		if c["UserId"] == nil {
+			return nil, errors.New(500, "ERROR_TOKEN", "无效TOKEN")
+		}
+		//if c["Password"] == nil {
+		//	return nil, errors.New(403, "ERROR_TOKEN", "无效TOKEN")
+		//}
+		userId = int64(c["UserId"].(float64))
+		//tokenPassword = c["Password"].(string)
+	}
+
+	return a.uuc.Exchange(ctx, req, &biz.User{
+		ID: userId,
+	})
+}
+
 // Withdraw withdraw.
 func (a *AppService) Withdraw(ctx context.Context, req *v1.WithdrawRequest) (*v1.WithdrawReply, error) {
 	// 在上下文 context 中取出 claims 对象

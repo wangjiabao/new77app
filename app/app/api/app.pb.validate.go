@@ -3433,6 +3433,237 @@ var _ interface {
 	ErrorName() string
 } = RecommendListReplyValidationError{}
 
+// Validate checks the field values on ExchangeRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *ExchangeRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ExchangeRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ExchangeRequestMultiError, or nil if none found.
+func (m *ExchangeRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ExchangeRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetSendBody()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ExchangeRequestValidationError{
+					field:  "SendBody",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ExchangeRequestValidationError{
+					field:  "SendBody",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSendBody()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ExchangeRequestValidationError{
+				field:  "SendBody",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return ExchangeRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ExchangeRequestMultiError is an error wrapping multiple validation errors
+// returned by ExchangeRequest.ValidateAll() if the designated constraints
+// aren't met.
+type ExchangeRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ExchangeRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ExchangeRequestMultiError) AllErrors() []error { return m }
+
+// ExchangeRequestValidationError is the validation error returned by
+// ExchangeRequest.Validate if the designated constraints aren't met.
+type ExchangeRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ExchangeRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ExchangeRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ExchangeRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ExchangeRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ExchangeRequestValidationError) ErrorName() string { return "ExchangeRequestValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ExchangeRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sExchangeRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ExchangeRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ExchangeRequestValidationError{}
+
+// Validate checks the field values on ExchangeReply with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *ExchangeReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ExchangeReply with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in ExchangeReplyMultiError, or
+// nil if none found.
+func (m *ExchangeReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ExchangeReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Status
+
+	if len(errors) > 0 {
+		return ExchangeReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// ExchangeReplyMultiError is an error wrapping multiple validation errors
+// returned by ExchangeReply.ValidateAll() if the designated constraints
+// aren't met.
+type ExchangeReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ExchangeReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ExchangeReplyMultiError) AllErrors() []error { return m }
+
+// ExchangeReplyValidationError is the validation error returned by
+// ExchangeReply.Validate if the designated constraints aren't met.
+type ExchangeReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ExchangeReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ExchangeReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ExchangeReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ExchangeReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ExchangeReplyValidationError) ErrorName() string { return "ExchangeReplyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ExchangeReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sExchangeReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ExchangeReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ExchangeReplyValidationError{}
+
 // Validate checks the field values on WithdrawRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.
@@ -9933,6 +10164,112 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RecommendListReply_ListValidationError{}
+
+// Validate checks the field values on ExchangeRequest_SendBody with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ExchangeRequest_SendBody) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ExchangeRequest_SendBody with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ExchangeRequest_SendBodyMultiError, or nil if none found.
+func (m *ExchangeRequest_SendBody) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ExchangeRequest_SendBody) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Sign
+
+	// no validation rules for Amount
+
+	if len(errors) > 0 {
+		return ExchangeRequest_SendBodyMultiError(errors)
+	}
+
+	return nil
+}
+
+// ExchangeRequest_SendBodyMultiError is an error wrapping multiple validation
+// errors returned by ExchangeRequest_SendBody.ValidateAll() if the designated
+// constraints aren't met.
+type ExchangeRequest_SendBodyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ExchangeRequest_SendBodyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ExchangeRequest_SendBodyMultiError) AllErrors() []error { return m }
+
+// ExchangeRequest_SendBodyValidationError is the validation error returned by
+// ExchangeRequest_SendBody.Validate if the designated constraints aren't met.
+type ExchangeRequest_SendBodyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ExchangeRequest_SendBodyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ExchangeRequest_SendBodyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ExchangeRequest_SendBodyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ExchangeRequest_SendBodyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ExchangeRequest_SendBodyValidationError) ErrorName() string {
+	return "ExchangeRequest_SendBodyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ExchangeRequest_SendBodyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sExchangeRequest_SendBody.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ExchangeRequest_SendBodyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ExchangeRequest_SendBodyValidationError{}
 
 // Validate checks the field values on WithdrawRequest_SendBody with the rules
 // defined in the proto definition for this message. If any rules are

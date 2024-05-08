@@ -206,6 +206,7 @@ type UserBalanceRepo interface {
 	GreateWithdraw(ctx context.Context, userId int64, relAmount int64, amount int64, amountFee int64, coinType string) (*Withdraw, error)
 	WithdrawUsdt(ctx context.Context, userId int64, amount int64, tmpRecommendUserIdsInt []int64) error
 	WithdrawUsdt2(ctx context.Context, userId int64, amount int64) error
+	Exchange(ctx context.Context, userId int64, amount int64, amountUsdt int64) error
 	WithdrawUsdt3(ctx context.Context, userId int64, amount int64) error
 	TranUsdt(ctx context.Context, userId int64, toUserId int64, amount int64, tmpRecommendUserIdsInt []int64, tmpRecommendUserIdsInt2 []int64) error
 	WithdrawDhb(ctx context.Context, userId int64, amount int64) error
@@ -809,8 +810,8 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		Count:                 stopCount,
 		LocationReward:        fmt.Sprintf("%.4f", float64(userBalance.LocationTotal)/float64(10000000000)) + "ISPS",
 		RecommendReward:       fmt.Sprintf("%.4f", float64(userBalance.RecommendTotal)/float64(10000000000)) + "ISPS",
-		FourReward:            fmt.Sprintf("%.4f", float64(userBalance.FourTotal)/float64(10000000000)) + "ISPS",
-		AreaReward:            fmt.Sprintf("%.4f", float64(userBalance.AreaTotal)/float64(10000000000)),
+		FourReward:            fmt.Sprintf("%.4f", float64(userBalance.FourTotal)/float64(10000000000)),
+		AreaReward:            fmt.Sprintf("%.4f", float64(userBalance.AreaTotal)/float64(10000000000)) + "ISPS",
 		FourRewardPool:        fmt.Sprintf("%.4f", float64(totalRewardYes)/float64(10000000000)),
 		FourRewardPoolYes:     fmt.Sprintf("%.4f", float64(totalRewardBef)/float64(10000000000)),
 		Four:                  fourList,
@@ -1277,6 +1278,89 @@ func (uuc *UserUseCase) TradeList(ctx context.Context, user *User) (*v1.TradeLis
 	}
 
 	return res, nil
+}
+
+// Exchange Exchange.
+func (uuc *UserUseCase) Exchange(ctx context.Context, req *v1.ExchangeRequest, user *User) (*v1.ExchangeReply, error) {
+	var (
+		//u           *User
+		err         error
+		userBalance *UserBalance
+	)
+
+	userBalance, err = uuc.ubRepo.GetUserBalance(ctx, user.ID)
+	if nil != err {
+		return nil, err
+	}
+
+	amountFloat, _ := strconv.ParseFloat(req.SendBody.Amount, 10)
+	amountFloat *= 10000000000
+	amount, _ := strconv.ParseInt(strconv.FormatFloat(amountFloat, 'f', -1, 64), 10, 64)
+
+	if userBalance.BalanceDhb < amount {
+		return &v1.ExchangeReply{
+			Status: "fail",
+		}, nil
+	}
+
+	if 10000000000 > amount {
+		return &v1.ExchangeReply{
+			Status: "fail",
+		}, nil
+	}
+
+	// 配置
+	var (
+		configs      []*Config
+		exchangeRate int64
+		bPrice       int64
+		bPriceBase   int64
+	)
+	configs, err = uuc.configRepo.GetConfigByKeys(ctx,
+		"exchange_rate",
+		"b_price",
+		"b_price_base",
+	)
+	if nil != configs {
+		for _, vConfig := range configs {
+			if "exchange_rate" == vConfig.KeyName {
+				exchangeRate, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+
+			if "b_price" == vConfig.KeyName {
+				bPrice, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+
+			if "b_price_base" == vConfig.KeyName {
+				bPriceBase, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+		}
+	}
+
+	amountUsdt := amount * bPrice / bPriceBase
+	amountUsdt = amountUsdt - amountUsdt*exchangeRate/1000
+	if amountUsdt <= 0 {
+		return &v1.ExchangeReply{
+			Status: "fail price",
+		}, nil
+	}
+
+	if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
+
+		err = uuc.ubRepo.Exchange(ctx, user.ID, amount, amountUsdt) // 提现
+		if nil != err {
+			return err
+		}
+
+		return nil
+	}); nil != err {
+		return nil, err
+	}
+
+	return &v1.ExchangeReply{
+		Status: "ok",
+	}, nil
+
 }
 
 func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, user *User, password string) (*v1.WithdrawReply, error) {

@@ -31,6 +31,7 @@ const (
 	App_RecommendList_FullMethodName       = "/api.App/RecommendList"
 	App_PasswordChange_FullMethodName      = "/api.App/PasswordChange"
 	App_Withdraw_FullMethodName            = "/api.App/Withdraw"
+	App_Exchange_FullMethodName            = "/api.App/Exchange"
 	App_Trade_FullMethodName               = "/api.App/Trade"
 	App_Tran_FullMethodName                = "/api.App/Tran"
 	App_GetTrade_FullMethodName            = "/api.App/GetTrade"
@@ -59,6 +60,7 @@ type AppClient interface {
 	RecommendList(ctx context.Context, in *RecommendListRequest, opts ...grpc.CallOption) (*RecommendListReply, error)
 	PasswordChange(ctx context.Context, in *PasswordChangeRequest, opts ...grpc.CallOption) (*PasswordChangeReply, error)
 	Withdraw(ctx context.Context, in *WithdrawRequest, opts ...grpc.CallOption) (*WithdrawReply, error)
+	Exchange(ctx context.Context, in *ExchangeRequest, opts ...grpc.CallOption) (*ExchangeReply, error)
 	Trade(ctx context.Context, in *WithdrawRequest, opts ...grpc.CallOption) (*WithdrawReply, error)
 	Tran(ctx context.Context, in *TranRequest, opts ...grpc.CallOption) (*TranReply, error)
 	GetTrade(ctx context.Context, in *GetTradeRequest, opts ...grpc.CallOption) (*GetTradeReply, error)
@@ -210,6 +212,15 @@ func (c *appClient) Withdraw(ctx context.Context, in *WithdrawRequest, opts ...g
 	return out, nil
 }
 
+func (c *appClient) Exchange(ctx context.Context, in *ExchangeRequest, opts ...grpc.CallOption) (*ExchangeReply, error) {
+	out := new(ExchangeReply)
+	err := c.cc.Invoke(ctx, App_Exchange_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *appClient) Trade(ctx context.Context, in *WithdrawRequest, opts ...grpc.CallOption) (*WithdrawReply, error) {
 	out := new(WithdrawReply)
 	err := c.cc.Invoke(ctx, App_Trade_FullMethodName, in, out, opts...)
@@ -316,6 +327,7 @@ type AppServer interface {
 	RecommendList(context.Context, *RecommendListRequest) (*RecommendListReply, error)
 	PasswordChange(context.Context, *PasswordChangeRequest) (*PasswordChangeReply, error)
 	Withdraw(context.Context, *WithdrawRequest) (*WithdrawReply, error)
+	Exchange(context.Context, *ExchangeRequest) (*ExchangeReply, error)
 	Trade(context.Context, *WithdrawRequest) (*WithdrawReply, error)
 	Tran(context.Context, *TranRequest) (*TranReply, error)
 	GetTrade(context.Context, *GetTradeRequest) (*GetTradeReply, error)
@@ -391,6 +403,9 @@ func (UnimplementedAppServer) PasswordChange(context.Context, *PasswordChangeReq
 }
 func (UnimplementedAppServer) Withdraw(context.Context, *WithdrawRequest) (*WithdrawReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Withdraw not implemented")
+}
+func (UnimplementedAppServer) Exchange(context.Context, *ExchangeRequest) (*ExchangeReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Exchange not implemented")
 }
 func (UnimplementedAppServer) Trade(context.Context, *WithdrawRequest) (*WithdrawReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Trade not implemented")
@@ -651,6 +666,24 @@ func _App_Withdraw_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _App_Exchange_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExchangeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).Exchange(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: App_Exchange_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).Exchange(ctx, req.(*ExchangeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _App_Trade_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(WithdrawRequest)
 	if err := dec(in); err != nil {
@@ -885,6 +918,10 @@ var App_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Withdraw",
 			Handler:    _App_Withdraw_Handler,
+		},
+		{
+			MethodName: "Exchange",
+			Handler:    _App_Exchange_Handler,
 		},
 		{
 			MethodName: "Trade",

@@ -86,6 +86,13 @@ service App {
 		};
 	};
 
+	rpc Exchange (ExchangeRequest) returns (ExchangeReply) {
+		option (google.api.http) = {
+			post: "/api/app_server/exchange"
+			body: "send_body"
+		};
+	};
+
 	rpc Trade (WithdrawRequest) returns (WithdrawReply) {
 		option (google.api.http) = {
 			post: "/api/app_server/trade"
@@ -503,6 +510,19 @@ message RecommendListReply {
 		string amount = 2;
 		string status = 3;
 	}
+}
+
+message ExchangeRequest {
+	message SendBody{
+		string sign = 2;
+		string amount = 1;
+	}
+
+	SendBody send_body = 1;
+}
+
+message ExchangeReply {
+	string status = 1;
 }
 
 message WithdrawRequest {

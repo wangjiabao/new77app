@@ -25,6 +25,7 @@ const OperationAppAdminWithdrawEth = "/api.App/AdminWithdrawEth"
 const OperationAppDeleteBalanceReward = "/api.App/DeleteBalanceReward"
 const OperationAppDeposit = "/api.App/Deposit"
 const OperationAppEthAuthorize = "/api.App/EthAuthorize"
+const OperationAppExchange = "/api.App/Exchange"
 const OperationAppFeeRewardList = "/api.App/FeeRewardList"
 const OperationAppGetTrade = "/api.App/GetTrade"
 const OperationAppPasswordChange = "/api.App/PasswordChange"
@@ -74,6 +75,7 @@ type AppHTTPServer interface {
 	DeleteBalanceReward(context.Context, *DeleteBalanceRewardRequest) (*DeleteBalanceRewardReply, error)
 	Deposit(context.Context, *DepositRequest) (*DepositReply, error)
 	EthAuthorize(context.Context, *EthAuthorizeRequest) (*EthAuthorizeReply, error)
+	Exchange(context.Context, *ExchangeRequest) (*ExchangeReply, error)
 	FeeRewardList(context.Context, *FeeRewardListRequest) (*FeeRewardListReply, error)
 	GetTrade(context.Context, *GetTradeRequest) (*GetTradeReply, error)
 	PasswordChange(context.Context, *PasswordChangeRequest) (*PasswordChangeReply, error)
@@ -106,6 +108,7 @@ func RegisterAppHTTPServer(s *http.Server, srv AppHTTPServer) {
 	r.GET("/api/app_server/recommend_list", _App_RecommendList0_HTTP_Handler(srv))
 	r.POST("/api/app_server/password_change", _App_PasswordChange0_HTTP_Handler(srv))
 	r.POST("/api/app_server/withdraw", _App_Withdraw0_HTTP_Handler(srv))
+	r.POST("/api/app_server/exchange", _App_Exchange0_HTTP_Handler(srv))
 	r.POST("/api/app_server/trade", _App_Trade0_HTTP_Handler(srv))
 	r.POST("/api/app_server/tran", _App_Tran0_HTTP_Handler(srv))
 	r.POST("/api/app_server/get_trade", _App_GetTrade0_HTTP_Handler(srv))
@@ -358,6 +361,28 @@ func _App_Withdraw0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error
 	}
 }
 
+func _App_Exchange0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ExchangeRequest
+		if err := ctx.Bind(&in.SendBody); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAppExchange)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.Exchange(ctx, req.(*ExchangeRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ExchangeReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _App_Trade0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in WithdrawRequest
@@ -570,6 +595,7 @@ type AppHTTPClient interface {
 	DeleteBalanceReward(ctx context.Context, req *DeleteBalanceRewardRequest, opts ...http.CallOption) (rsp *DeleteBalanceRewardReply, err error)
 	Deposit(ctx context.Context, req *DepositRequest, opts ...http.CallOption) (rsp *DepositReply, err error)
 	EthAuthorize(ctx context.Context, req *EthAuthorizeRequest, opts ...http.CallOption) (rsp *EthAuthorizeReply, err error)
+	Exchange(ctx context.Context, req *ExchangeRequest, opts ...http.CallOption) (rsp *ExchangeReply, err error)
 	FeeRewardList(ctx context.Context, req *FeeRewardListRequest, opts ...http.CallOption) (rsp *FeeRewardListReply, err error)
 	GetTrade(ctx context.Context, req *GetTradeRequest, opts ...http.CallOption) (rsp *GetTradeReply, err error)
 	PasswordChange(ctx context.Context, req *PasswordChangeRequest, opts ...http.CallOption) (rsp *PasswordChangeReply, err error)
@@ -666,6 +692,19 @@ func (c *AppHTTPClientImpl) EthAuthorize(ctx context.Context, in *EthAuthorizeRe
 	pattern := "/api/app_server/eth_authorize"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationAppEthAuthorize))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in.SendBody, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *AppHTTPClientImpl) Exchange(ctx context.Context, in *ExchangeRequest, opts ...http.CallOption) (*ExchangeReply, error) {
+	var out ExchangeReply
+	pattern := "/api/app_server/exchange"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAppExchange))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in.SendBody, &out, opts...)
 	if err != nil {
