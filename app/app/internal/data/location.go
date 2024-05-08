@@ -38,6 +38,9 @@ type LocationNew struct {
 	StopDate          time.Time `gorm:"type:datetime;not null"`
 	CreatedAt         time.Time `gorm:"type:datetime;not null"`
 	UpdatedAt         time.Time `gorm:"type:datetime;not null"`
+	Total             int64     `gorm:"type:int"`
+	TotalTwo          int64     `gorm:"type:int"`
+	TotalThree        int64     `gorm:"type:int"`
 }
 
 type GlobalLock struct {
@@ -260,6 +263,43 @@ func (lr *LocationRepo) GetAllLocationsCount(ctx context.Context, usdt int64) in
 	return count
 }
 
+// GetLocationDailyYesterday .
+func (lr *LocationRepo) GetLocationDailyYesterday(ctx context.Context, day int) ([]*biz.LocationNew, error) {
+	var locations []*LocationNew
+	res := make([]*biz.LocationNew, 0)
+	instance := lr.data.db.Table("location_new")
+
+	// 16点之后执行
+	now := time.Now().UTC().AddDate(0, 0, day)
+	startDate := now
+	endDate := now.AddDate(0, 0, 1)
+	todayStart := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 16, 0, 0, 0, time.UTC)
+	todayEnd := time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 16, 0, 0, 0, time.UTC)
+
+	instance = instance.Where("created_at>=?", todayStart)
+	instance = instance.Where("created_at<?", todayEnd)
+	if err := instance.Order("id desc").Find(&locations).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return res, errors.NotFound("LOCATION_NOT_FOUND", "location not found")
+		}
+
+		return res, errors.New(500, "LOCATION ERROR", err.Error())
+	}
+
+	for _, v := range locations {
+		res = append(res, &biz.LocationNew{
+			ID:         v.ID,
+			UserId:     v.UserId,
+			Status:     v.Status,
+			Current:    v.Current,
+			CurrentMax: v.CurrentMax,
+			Usdt:       v.Usdt,
+		})
+	}
+
+	return res, nil
+}
+
 // GetLocationsByUserId .
 func (lr *LocationRepo) GetLocationsByUserId(ctx context.Context, userId int64) ([]*biz.LocationNew, error) {
 	var locations []*LocationNew
@@ -285,6 +325,9 @@ func (lr *LocationRepo) GetLocationsByUserId(ctx context.Context, userId int64) 
 			CurrentMaxNew: location.CurrentMaxNew,
 			Usdt:          location.Usdt,
 			Num:           location.Num,
+			Total:         location.Total,
+			TotalTwo:      location.TotalTwo,
+			TotalThree:    location.TotalThree,
 		})
 	}
 

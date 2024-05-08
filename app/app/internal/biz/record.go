@@ -77,6 +77,7 @@ type LocationRepo interface {
 	GetLockGlobalLocation(ctx context.Context) (*GlobalLock, error)
 
 	GetMyStopLocationsLast(ctx context.Context, userId int64) ([]*LocationNew, error)
+	GetLocationDailyYesterday(ctx context.Context, day int) ([]*LocationNew, error)
 }
 
 func NewRecordUseCase(

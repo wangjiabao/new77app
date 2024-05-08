@@ -290,14 +290,14 @@ message UserInfoReply {
 	string fourRewardPoolYes = 24; // 每日前四名奖励池沉淀数量
 	repeated ListFour four = 50; // 每日前四名
 	message ListFour {
-		string amount = 2; // 直推金额
+		int64 amount = 2; // 直推金额
 		string reward = 3; // 奖励
 	}
 
-	string areaMax = 30; // 大区业绩
-	string areaMin = 31; // 小区业绩
-	string areaAll = 32; // 总业绩
-	string recommendTotal = 33; // 直推人数
+	int64 areaMax = 30; // 大区业绩
+	int64 areaMin = 31; // 小区业绩
+	int64 areaAll = 32; // 总业绩
+	int64 recommendTotal = 33; // 直推人数
 	string locationUsdt = 34; // 节点
 	string locationCurrentMaxSub = 35; //待领取，待产出
 	string locationCurrentSub = 36; //已产出

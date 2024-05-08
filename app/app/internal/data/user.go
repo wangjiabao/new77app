@@ -47,6 +47,7 @@ type UserInfo struct {
 type UserRecommend struct {
 	ID            int64     `gorm:"primarykey;type:int"`
 	UserId        int64     `gorm:"type:int;not null"`
+	Total         int64     `gorm:"type:bigint"`
 	RecommendCode string    `gorm:"type:varchar(10000);not null"`
 	CreatedAt     time.Time `gorm:"type:datetime;not null"`
 	UpdatedAt     time.Time `gorm:"type:datetime;not null"`
@@ -110,6 +111,10 @@ type UserBalance struct {
 	BalanceDhb     int64     `gorm:"type:bigint"`
 	CreatedAt      time.Time `gorm:"type:datetime;not null"`
 	UpdatedAt      time.Time `gorm:"type:datetime;not null"`
+	AreaTotal      int64     `gorm:"type:bigint"`
+	RecommendTotal int64     `gorm:"type:bigint"`
+	LocationTotal  int64     `gorm:"type:bigint"`
+	FourTotal      int64     `gorm:"type:bigint"`
 }
 
 type Withdraw struct {
@@ -511,6 +516,29 @@ func (ui *UserInfoRepo) UpdateUserInfo(ctx context.Context, u *biz.UserInfo) (*b
 	}, nil
 }
 
+// GetUserRecommendsFour .
+func (ur *UserRecommendRepo) GetUserRecommendsFour(ctx context.Context) ([]*biz.UserRecommend, error) {
+	var userRecommends []*UserRecommend
+	res := make([]*biz.UserRecommend, 0)
+	if err := ur.data.db.Table("user_recommend").Order("total desc").Limit(4).Find(&userRecommends).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return res, errors.NotFound("USER_RECOMMEND_NOT_FOUND", "user recommend not found")
+		}
+
+		return nil, errors.New(500, "USER RECOMMEND ERROR", err.Error())
+	}
+
+	for _, userRecommend := range userRecommends {
+		res = append(res, &biz.UserRecommend{
+			UserId:        userRecommend.UserId,
+			RecommendCode: userRecommend.RecommendCode,
+			Total:         userRecommend.Total,
+		})
+	}
+
+	return res, nil
+}
+
 // GetUserRecommendByUserId .
 func (ur *UserRecommendRepo) GetUserRecommendByUserId(ctx context.Context, userId int64) (*biz.UserRecommend, error) {
 	var userRecommend UserRecommend
@@ -841,11 +869,15 @@ func (ub UserBalanceRepo) GetUserBalance(ctx context.Context, userId int64) (*bi
 	}
 
 	return &biz.UserBalance{
-		ID:           userBalance.ID,
-		UserId:       userBalance.UserId,
-		BalanceUsdt:  userBalance.BalanceUsdt,
-		BalanceUsdt2: userBalance.BalanceUsdtNew,
-		BalanceDhb:   userBalance.BalanceDhb,
+		ID:             userBalance.ID,
+		UserId:         userBalance.UserId,
+		BalanceUsdt:    userBalance.BalanceUsdt,
+		BalanceUsdt2:   userBalance.BalanceUsdtNew,
+		BalanceDhb:     userBalance.BalanceDhb,
+		RecommendTotal: userBalance.RecommendTotal,
+		AreaTotal:      userBalance.AreaTotal,
+		LocationTotal:  userBalance.LocationTotal,
+		FourTotal:      userBalance.FourTotal,
 	}, nil
 }
 
