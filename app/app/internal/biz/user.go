@@ -641,7 +641,19 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		return nil, err
 	}
 	if nil != myUserRecommend {
-		recommendTotal = int64(len(myUserRecommend))
+		for _, vMyUserRecommend := range myUserRecommend {
+			var (
+				tmpMyRecommendLocations []*LocationNew
+			)
+			tmpMyRecommendLocations, err = uuc.locationRepo.GetLocationsByUserId(ctx, vMyUserRecommend.UserId)
+			if nil != err {
+				return nil, err
+			}
+
+			if 0 < len(tmpMyRecommendLocations) {
+				recommendTotal++
+			}
+		}
 	}
 
 	// 提现
