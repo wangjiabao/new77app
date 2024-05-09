@@ -276,6 +276,7 @@ message UserInfoReply {
 	int64 count = 20; // 出局次数
 	string inviteUrl = 21; // 邀请链接
 	string inviteUserAddress = 22; // 直推人地址
+	double exchangeRate = 60; // 兑换手续费
 
 	repeated List LocationList = 52; // 购买记录
 	message List {

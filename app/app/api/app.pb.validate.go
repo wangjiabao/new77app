@@ -870,6 +870,8 @@ func (m *UserInfoReply) validate(all bool) error {
 
 	// no validation rules for InviteUserAddress
 
+	// no validation rules for ExchangeRate
+
 	for idx, item := range m.GetLocationList() {
 		_, _ = idx, item
 

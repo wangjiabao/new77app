@@ -811,6 +811,9 @@ components:
                     type: string
                 inviteUserAddress:
                     type: string
+                exchangeRate:
+                    type: number
+                    format: double
                 LocationList:
                     type: array
                     items:

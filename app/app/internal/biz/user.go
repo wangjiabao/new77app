@@ -480,11 +480,13 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		two                   int64
 		three                 int64
 		four                  int64
+		exchangeRate          int64
 	)
 
 	// 配置
 	configs, err = uuc.configRepo.GetConfigByKeys(ctx,
 		"b_price",
+		"exchange_rate",
 		"b_price_base",
 		"buy_one",
 		"buy_two",
@@ -497,6 +499,9 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		for _, vConfig := range configs {
 			if "b_price" == vConfig.KeyName {
 				bPrice, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "exchange_rate" == vConfig.KeyName {
+				exchangeRate, _ = strconv.ParseInt(vConfig.Value, 10, 64)
 			}
 			if "b_price_base" == vConfig.KeyName {
 				bPriceBase, _ = strconv.ParseInt(vConfig.Value, 10, 64)
@@ -785,6 +790,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 
 	return &v1.UserInfoReply{
 		BiwPrice:              float64(bPrice) / float64(bPriceBase),
+		ExchangeRate:          float64(exchangeRate) / 1000,
 		BalanceBiw:            fmt.Sprintf("%.4f", float64(userBalance.BalanceDhb)/float64(10000000000)) + "ISPS",
 		BalanceUsdt:           fmt.Sprintf("%.4f", float64(userBalance.BalanceUsdt)/float64(10000000000)),
 		BiwDaily:              "",
