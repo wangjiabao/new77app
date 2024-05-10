@@ -1038,6 +1038,40 @@ func (m *UserInfoReply) validate(all bool) error {
 
 	}
 
+	for idx, item := range m.GetListRecommend() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, UserInfoReplyValidationError{
+						field:  fmt.Sprintf("ListRecommend[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, UserInfoReplyValidationError{
+						field:  fmt.Sprintf("ListRecommend[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return UserInfoReplyValidationError{
+					field:  fmt.Sprintf("ListRecommend[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
 	if len(errors) > 0 {
 		return UserInfoReplyMultiError(errors)
 	}
@@ -8441,6 +8475,111 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UserInfoReply_ListRewardValidationError{}
+
+// Validate checks the field values on UserInfoReply_ListRecommend with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UserInfoReply_ListRecommend) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UserInfoReply_ListRecommend with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UserInfoReply_ListRecommendMultiError, or nil if none found.
+func (m *UserInfoReply_ListRecommend) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UserInfoReply_ListRecommend) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Address
+
+	if len(errors) > 0 {
+		return UserInfoReply_ListRecommendMultiError(errors)
+	}
+
+	return nil
+}
+
+// UserInfoReply_ListRecommendMultiError is an error wrapping multiple
+// validation errors returned by UserInfoReply_ListRecommend.ValidateAll() if
+// the designated constraints aren't met.
+type UserInfoReply_ListRecommendMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UserInfoReply_ListRecommendMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UserInfoReply_ListRecommendMultiError) AllErrors() []error { return m }
+
+// UserInfoReply_ListRecommendValidationError is the validation error returned
+// by UserInfoReply_ListRecommend.Validate if the designated constraints
+// aren't met.
+type UserInfoReply_ListRecommendValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UserInfoReply_ListRecommendValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UserInfoReply_ListRecommendValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UserInfoReply_ListRecommendValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UserInfoReply_ListRecommendValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UserInfoReply_ListRecommendValidationError) ErrorName() string {
+	return "UserInfoReply_ListRecommendValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UserInfoReply_ListRecommendValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUserInfoReply_ListRecommend.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UserInfoReply_ListRecommendValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UserInfoReply_ListRecommendValidationError{}
 
 // Validate checks the field values on UserInfo1Reply_List with the rules
 // defined in the proto definition for this message. If any rules are

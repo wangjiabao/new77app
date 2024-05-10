@@ -277,7 +277,7 @@ message UserInfoReply {
 	string inviteUrl = 21; // 邀请链接
 	string inviteUserAddress = 22; // 直推人地址
 	double exchangeRate = 60; // 兑换手续费
-
+	int64 lastLevel = 62;
 	repeated List LocationList = 52; // 购买记录
 	message List {
 		string current = 2; // 收益
@@ -319,6 +319,11 @@ message UserInfoReply {
 		string createdAt = 1; // 时间
 		int64 type = 2; // 类型，挖矿收益 type=1,分享 type=2, 前四名type =3,矩阵type=4
 		string reward = 3; // 数量
+	}
+
+	repeated ListRecommend listRecommend = 40; // 收益列表，挖矿，分享，前四名
+	message ListRecommend {
+		string address = 1; // 地址
 	}
 }
 

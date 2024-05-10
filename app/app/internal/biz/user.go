@@ -481,6 +481,12 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		three                 int64
 		four                  int64
 		exchangeRate          int64
+		lastLevel             int64
+		areaOne               int64
+		areaTwo               int64
+		areaThree             int64
+		areaFour              int64
+		areaFive              int64
 	)
 
 	// 配置
@@ -494,6 +500,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		"buy_four",
 		"buy_five",
 		"total",
+		"area_one", "area_two", "area_three", "area_four", "area_five",
 	)
 	if nil != configs {
 		for _, vConfig := range configs {
@@ -535,6 +542,21 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 			}
 			if "four" == vConfig.KeyName {
 				four, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "area_one" == vConfig.KeyName {
+				areaOne, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "area_two" == vConfig.KeyName {
+				areaTwo, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "area_three" == vConfig.KeyName {
+				areaThree, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "area_four" == vConfig.KeyName {
+				areaFour, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "area_five" == vConfig.KeyName {
+				areaFive, _ = strconv.ParseInt(vConfig.Value, 10, 64)
 			}
 		}
 	}
@@ -601,6 +623,61 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 				CurrentMaxSubCurrent: fmt.Sprintf("%.4f", float64(tmp)/float64(10000000000)),
 				Amount:               fmt.Sprintf("%.4f", float64(v.CurrentMax)/float64(10000000000)/2.5),
 			})
+			var tmpLastLevel int64
+			// 1大区
+			if v.Total >= v.TotalTwo && v.Total >= v.TotalThree {
+				if areaOne <= v.TotalTwo+v.TotalThree {
+					tmpLastLevel = 1
+				}
+				if areaTwo <= v.TotalTwo+v.TotalThree {
+					tmpLastLevel = 2
+				}
+				if areaThree <= v.TotalTwo+v.TotalThree {
+					tmpLastLevel = 3
+				}
+				if areaFour <= v.TotalTwo+v.TotalThree {
+					tmpLastLevel = 4
+				}
+				if areaFive <= v.TotalTwo+v.TotalThree {
+					tmpLastLevel = 5
+				}
+			} else if v.TotalTwo >= v.Total && v.TotalTwo >= v.TotalThree {
+				if areaOne <= v.Total+v.TotalThree {
+					tmpLastLevel = 1
+				}
+				if areaTwo <= v.Total+v.TotalThree {
+					tmpLastLevel = 2
+				}
+				if areaThree <= v.Total+v.TotalThree {
+					tmpLastLevel = 3
+				}
+				if areaFour <= v.Total+v.TotalThree {
+					tmpLastLevel = 4
+				}
+				if areaFive <= v.Total+v.TotalThree {
+					tmpLastLevel = 5
+				}
+			} else if v.TotalThree >= v.Total && v.TotalThree >= v.TotalTwo {
+				if areaOne <= v.TotalTwo+v.Total {
+					tmpLastLevel = 1
+				}
+				if areaTwo <= v.TotalTwo+v.Total {
+					tmpLastLevel = 2
+				}
+				if areaThree <= v.TotalTwo+v.Total {
+					tmpLastLevel = 3
+				}
+				if areaFour <= v.TotalTwo+v.Total {
+					tmpLastLevel = 4
+				}
+				if areaFive <= v.TotalTwo+v.Total {
+					tmpLastLevel = 5
+				}
+			}
+
+			if tmpLastLevel > lastLevel {
+				lastLevel = tmpLastLevel
+			}
 		}
 	}
 
@@ -640,6 +717,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	if nil != err {
 		return nil, err
 	}
+	myRecommendList := make([]*v1.UserInfoReply_ListRecommend, 0)
 	if nil != myUserRecommend {
 		for _, vMyUserRecommend := range myUserRecommend {
 			var (
@@ -652,6 +730,19 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 
 			if 0 < len(tmpMyRecommendLocations) {
 				recommendTotal++
+				var (
+					myAllRecommendUser *User
+				)
+				myAllRecommendUser, err = uuc.repo.GetUserById(ctx, vMyUserRecommend.UserId)
+				if nil != err {
+					return nil, err
+				}
+
+				if nil == myAllRecommendUser {
+					continue
+				}
+
+				myRecommendList = append(myRecommendList, &v1.UserInfoReply_ListRecommend{Address: myAllRecommendUser.Address})
 			}
 		}
 	}
@@ -758,25 +849,16 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		if 0 >= userRecommendFour.Total {
 			continue
 		}
+
 		var (
-			locationsFour []*LocationNew
+			fourUser *User
 		)
-		locationsFour, err = uuc.locationRepo.GetLocationsByUserId(ctx, myUser.ID)
+		fourUser, err = uuc.repo.GetUserById(ctx, userRecommendFour.UserId)
 		if nil != err {
-			continue
+			return nil, err
 		}
-		if nil == locationsFour || 0 >= len(locationsFour) {
-			continue
-		}
-		tmpStatusRunning := false
-		var tmpUsdt int64
-		for _, vLocationsFour := range locationsFour {
-			if "running" == vLocationsFour.Status {
-				tmpStatusRunning = true
-				tmpUsdt = vLocationsFour.Usdt
-			}
-		}
-		if !tmpStatusRunning {
+
+		if nil == fourUser {
 			continue
 		}
 
@@ -794,7 +876,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		}
 
 		fourList = append(fourList, &v1.UserInfoReply_ListFour{
-			Location: fmt.Sprintf("%.4f", float64(tmpUsdt)/float64(10000000000)),
+			Location: fourUser.Address,
 			Amount:   userRecommendFour.Total,
 			Reward:   fmt.Sprintf("%.4f", float64(tmpMyRecommendAmount)/float64(10000000000)),
 		})

@@ -860,6 +860,10 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/UserInfoReply_ListReward'
+                listRecommend:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/UserInfoReply_ListRecommend'
         UserInfoReply_List:
             type: object
             properties:
@@ -877,6 +881,11 @@ components:
                 reward:
                     type: string
                 location:
+                    type: string
+        UserInfoReply_ListRecommend:
+            type: object
+            properties:
+                address:
                     type: string
         UserInfoReply_ListReward:
             type: object
