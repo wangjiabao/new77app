@@ -876,8 +876,8 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		}
 
 		var address1 string
-		if 20 < len(fourUser.Address) {
-			address1 = fourUser.Address[:20]
+		if 20 <= len(fourUser.Address) {
+			address1 = fourUser.Address[:6] + "..." + fourUser.Address[len(fourUser.Address)-4:]
 		}
 		fourList = append(fourList, &v1.UserInfoReply_ListFour{
 			Location: address1,
