@@ -875,8 +875,12 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 			tmpMyRecommendAmount = totalReward / 100 * four
 		}
 
+		var address1 string
+		if 20 < len(fourUser.Address) {
+			address1 = fourUser.Address[:20]
+		}
 		fourList = append(fourList, &v1.UserInfoReply_ListFour{
-			Location: fourUser.Address,
+			Location: address1,
 			Amount:   userRecommendFour.Total,
 			Reward:   fmt.Sprintf("%.4f", float64(tmpMyRecommendAmount)/float64(10000000000)),
 		})
