@@ -500,6 +500,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		"buy_four",
 		"buy_five",
 		"total",
+		"one", "two", "three", "four",
 		"area_one", "area_two", "area_three", "area_four", "area_five",
 	)
 	if nil != configs {
