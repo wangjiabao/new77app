@@ -930,6 +930,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		WithdrawTotal:         "",
 		LocationUsdtAll:       "",
 		ListReward:            listReward,
+		ListRecommend:         myRecommendList,
 	}, nil
 }
 
