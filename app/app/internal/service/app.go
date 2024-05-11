@@ -260,6 +260,7 @@ func (a *AppService) PasswordChange(ctx context.Context, req *v1.PasswordChangeR
 func (a *AppService) Exchange(ctx context.Context, req *v1.ExchangeRequest) (*v1.ExchangeReply, error) {
 	var (
 		userId int64
+		err    error
 	)
 	if claims, ok := jwt.FromContext(ctx); ok {
 		c := claims.(jwt2.MapClaims)
@@ -271,6 +272,23 @@ func (a *AppService) Exchange(ctx context.Context, req *v1.ExchangeRequest) (*v1
 		//}
 		userId = int64(c["UserId"].(float64))
 		//tokenPassword = c["Password"].(string)
+	}
+
+	var (
+		user *biz.User
+	)
+	user, err = a.uuc.GetUserByUserId(ctx, userId)
+	if nil != err {
+		return nil, err
+	}
+
+	var (
+		res             bool
+		addressFromSign string
+	)
+	res, addressFromSign = verifySig(req.SendBody.Sign, []byte(user.Address))
+	if !res || addressFromSign != user.Address {
+		return nil, errors.New(500, "AUTHORIZE_ERROR", "地址签名错误")
 	}
 
 	return a.uuc.Exchange(ctx, req, &biz.User{
@@ -311,9 +329,8 @@ func (a *AppService) Withdraw(ctx context.Context, req *v1.WithdrawRequest) (*v1
 		res             bool
 		addressFromSign string
 	)
-	res, addressFromSign = verifySig(req.SendBody.Sign, []byte(""))
+	res, addressFromSign = verifySig(req.SendBody.Sign, []byte(user.Address))
 	if !res || addressFromSign != user.Address {
-		fmt.Println(user.Address, addressFromSign)
 		return nil, errors.New(500, "AUTHORIZE_ERROR", "地址签名错误")
 	}
 
@@ -841,7 +858,6 @@ func verifySig(sigHex string, msg []byte) (bool, string) {
 
 	recovered, err := crypto.SigToPub(msg, sig)
 	if err != nil {
-		fmt.Println(err)
 		return false, ""
 	}
 
