@@ -575,11 +575,11 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	//}
 
 	// 系统
-	count1 := uuc.locationRepo.GetAllLocationsCount(ctx, 3000000000000)
-	count2 := uuc.locationRepo.GetAllLocationsCount(ctx, 10000000000000)
-	count3 := uuc.locationRepo.GetAllLocationsCount(ctx, 30000000000000)
-	count4 := uuc.locationRepo.GetAllLocationsCount(ctx, 50000000000000)
-	count5 := uuc.locationRepo.GetAllLocationsCount(ctx, 100000000000000)
+	count1 := uuc.locationRepo.GetAllLocationsCount(ctx, 30000000)
+	count2 := uuc.locationRepo.GetAllLocationsCount(ctx, 100000000)
+	count3 := uuc.locationRepo.GetAllLocationsCount(ctx, 300000000)
+	count4 := uuc.locationRepo.GetAllLocationsCount(ctx, 500000000)
+	count5 := uuc.locationRepo.GetAllLocationsCount(ctx, 1000000000)
 
 	// 入金
 	locations, err = uuc.locationRepo.GetLocationsByUserId(ctx, myUser.ID)
@@ -598,7 +598,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 			}
 
 			if "running" == v.Status {
-				currentAmountBiw = fmt.Sprintf("%.2f", float64(tmp)/float64(10000000000))
+				currentAmountBiw = fmt.Sprintf("%.2f", float64(tmp)/float64(100000))
 				areaAll = v.Total + v.TotalThree + v.TotalTwo
 				if v.TotalTwo >= v.Total && v.TotalTwo >= v.TotalThree {
 					areaMax = v.TotalTwo
@@ -612,10 +612,10 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 					areaMax = v.TotalThree
 					areaMin = v.TotalTwo + v.Total
 				}
-				locationUsdt = fmt.Sprintf("%.2f", float64(v.Usdt)/float64(10000000000))
+				locationUsdt = fmt.Sprintf("%.2f", float64(v.Usdt)/float64(100000))
 
-				locationCurrent = fmt.Sprintf("%.2f", float64(v.Current)/float64(10000000000))
-				locationCurrentMaxSub = fmt.Sprintf("%.2f", float64(v.CurrentMax-v.Current)/float64(10000000000))
+				locationCurrent = fmt.Sprintf("%.2f", float64(v.Current)/float64(100000))
+				locationCurrentMaxSub = fmt.Sprintf("%.2f", float64(v.CurrentMax-v.Current)/float64(100000))
 			}
 
 			if "stop" == v.Status {
@@ -623,9 +623,9 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 			}
 
 			myLocations = append(myLocations, &v1.UserInfoReply_List{
-				Current:              fmt.Sprintf("%.2f", float64(v.Current)/float64(10000000000)),
-				CurrentMaxSubCurrent: fmt.Sprintf("%.2f", float64(tmp)/float64(10000000000)),
-				Amount:               fmt.Sprintf("%.2f", float64(v.CurrentMax)/float64(10000000000)/2.5),
+				Current:              fmt.Sprintf("%.2f", float64(v.Current)/float64(100000)),
+				CurrentMaxSubCurrent: fmt.Sprintf("%.2f", float64(tmp)/float64(100000)),
+				Amount:               fmt.Sprintf("%.2f", float64(v.CurrentMax)/float64(100000)/2.5),
 			})
 			var tmpLastLevel int64
 			// 1大区
@@ -774,7 +774,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		}
 
 		withdrawList = append(withdrawList, &v1.UserInfoReply_ListWithdraw{
-			Amount:   fmt.Sprintf("%.2f", float64(v.RelAmount)/float64(10000000000)),
+			Amount:   fmt.Sprintf("%.2f", float64(v.RelAmount)/float64(100000)),
 			CreateAt: v.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
 		})
 	}
@@ -790,49 +790,49 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 			if "location" == vUserReward.Reason {
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)) + "ISPS",
+					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "ISPS",
 					Type:      1,
 				})
 			} else if "area" == vUserReward.Reason {
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)) + "ISPS",
+					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "ISPS",
 					Type:      4,
 				})
 			} else if "recommend" == vUserReward.Reason {
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)) + "ISPS",
+					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "ISPS",
 					Type:      2,
 				})
 			} else if "four" == vUserReward.Reason {
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)),
+					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)),
 					Type:      3,
 				})
 			} else if "exchange" == vUserReward.Reason {
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)) + "ISPS",
+					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "ISPS",
 					Type:      7,
 				})
 			} else if "exchange_2" == vUserReward.Reason {
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)) + "ISPS",
+					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "ISPS",
 					Type:      7,
 				})
 			} else if "withdraw" == vUserReward.Reason {
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)),
+					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)),
 					Type:      6,
 				})
 			} else if "buy" == vUserReward.Reason {
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)),
+					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)),
 					Type:      5,
 				})
 			} else {
@@ -914,15 +914,15 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		fourList = append(fourList, &v1.UserInfoReply_ListFour{
 			Location: address1,
 			Amount:   userRecommendFour.Total,
-			Reward:   fmt.Sprintf("%.2f", float64(tmpMyRecommendAmount)/float64(10000000000)),
+			Reward:   fmt.Sprintf("%.2f", float64(tmpMyRecommendAmount)/float64(100000)),
 		})
 	}
 
 	return &v1.UserInfoReply{
 		BiwPrice:              float64(bPrice) / float64(bPriceBase),
 		ExchangeRate:          float64(exchangeRate) / 1000,
-		BalanceBiw:            fmt.Sprintf("%.2f", float64(userBalance.BalanceDhb)/float64(10000000000)) + "ISPS",
-		BalanceUsdt:           fmt.Sprintf("%.2f", float64(userBalance.BalanceUsdt)/float64(10000000000)),
+		BalanceBiw:            fmt.Sprintf("%.2f", float64(userBalance.BalanceDhb)/float64(100000)) + "ISPS",
+		BalanceUsdt:           fmt.Sprintf("%.2f", float64(userBalance.BalanceUsdt)/float64(100000)),
 		BiwDaily:              "",
 		BuyNumTwo:             count2,
 		BuyNumThree:           count3,
@@ -944,12 +944,12 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		InviteUserAddress:     inviteUserAddress,
 		InviteUrl:             encodeString,
 		Count:                 stopCount,
-		LocationReward:        fmt.Sprintf("%.2f", float64(userBalance.LocationTotal)/float64(10000000000)) + "ISPS",
-		RecommendReward:       fmt.Sprintf("%.2f", float64(userBalance.RecommendTotal)/float64(10000000000)) + "ISPS",
-		FourReward:            fmt.Sprintf("%.2f", float64(userBalance.FourTotal)/float64(10000000000)),
-		AreaReward:            fmt.Sprintf("%.2f", float64(userBalance.AreaTotal)/float64(10000000000)) + "ISPS",
-		FourRewardPool:        fmt.Sprintf("%.2f", float64(totalRewardYes)/float64(10000000000)),
-		FourRewardPoolYes:     fmt.Sprintf("%.2f", float64(totalRewardBef)/float64(10000000000)),
+		LocationReward:        fmt.Sprintf("%.2f", float64(userBalance.LocationTotal)/float64(100000)) + "ISPS",
+		RecommendReward:       fmt.Sprintf("%.2f", float64(userBalance.RecommendTotal)/float64(100000)) + "ISPS",
+		FourReward:            fmt.Sprintf("%.2f", float64(userBalance.FourTotal)/float64(100000)),
+		AreaReward:            fmt.Sprintf("%.2f", float64(userBalance.AreaTotal)/float64(100000)) + "ISPS",
+		FourRewardPool:        fmt.Sprintf("%.2f", float64(totalRewardYes)/float64(100000)),
+		FourRewardPoolYes:     fmt.Sprintf("%.2f", float64(totalRewardBef)/float64(100000)),
 		Four:                  fourList,
 		AreaMax:               areaMax,
 		AreaMin:               areaMin,
@@ -1026,14 +1026,14 @@ func (uuc *UserUseCase) UserInfoOld(ctx context.Context, user *User) (*v1.UserIn
 	//			tmp = v.CurrentMax - v.Current
 	//		}
 	//		if "running" == v.Status {
-	//			amount = fmt.Sprintf("%.4f", float64(tmp)/float64(10000000000))
+	//			amount = fmt.Sprintf("%.4f", float64(tmp)/float64(100000))
 	//		}
 	//
 	//		myLocations = append(myLocations, &v1.UserInfoReply_List{
 	//			CreatedAt: v.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-	//			Amount:    fmt.Sprintf("%.2f", float64(v.Usdt)/float64(10000000000)),
+	//			Amount:    fmt.Sprintf("%.2f", float64(v.Usdt)/float64(100000)),
 	//			Num:       v.Num,
-	//			AmountMax: fmt.Sprintf("%.2f", float64(v.CurrentMax)/float64(10000000000)),
+	//			AmountMax: fmt.Sprintf("%.2f", float64(v.CurrentMax)/float64(100000)),
 	//		})
 	//	}
 	//
@@ -1063,13 +1063,13 @@ func (uuc *UserUseCase) UserInfoOld(ctx context.Context, user *User) (*v1.UserIn
 	//		}
 	//
 	//		if "running" == v.Status {
-	//			amount2 = fmt.Sprintf("%.4f", float64(tmp)/float64(10000000000))
+	//			amount2 = fmt.Sprintf("%.4f", float64(tmp)/float64(100000))
 	//		}
 	//
 	//		myLocations2 = append(myLocations2, &v1.UserInfoReply_List22{
 	//			CreatedAt: v.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-	//			Amount:    fmt.Sprintf("%.2f", float64(v.Usdt)/float64(10000000000)),
-	//			AmountMax: fmt.Sprintf("%.2f", float64(v.CurrentMax)/float64(10000000000)),
+	//			Amount:    fmt.Sprintf("%.2f", float64(v.Usdt)/float64(100000)),
+	//			AmountMax: fmt.Sprintf("%.2f", float64(v.CurrentMax)/float64(100000)),
 	//		})
 	//	}
 	//
@@ -1148,14 +1148,14 @@ func (uuc *UserUseCase) UserInfoOld(ctx context.Context, user *User) (*v1.UserIn
 	//			if _, ok := recommendUserIds[vTeamUsers.ID]; ok {
 	//				recommendAddresses = append(recommendAddresses, &v1.UserInfoReply_List11{
 	//					Address: vTeamUsers.Address,
-	//					Usdt:    fmt.Sprintf("%.2f", float64(locationAmount)/float64(10000000000)),
+	//					Usdt:    fmt.Sprintf("%.2f", float64(locationAmount)/float64(100000)),
 	//					Vip:     teamUserInfos[vTeamUsers.ID].Vip,
 	//				})
 	//			}
 	//
 	//			teamUserAddresses = append(teamUserAddresses, &v1.UserInfoReply_List7{
 	//				Address: vTeamUsers.Address,
-	//				Usdt:    fmt.Sprintf("%.2f", float64(locationAmount)/float64(10000000000)),
+	//				Usdt:    fmt.Sprintf("%.2f", float64(locationAmount)/float64(100000)),
 	//				Vip:     teamUserInfos[vTeamUsers.ID].Vip,
 	//			})
 	//		}
@@ -1173,7 +1173,7 @@ func (uuc *UserUseCase) UserInfoOld(ctx context.Context, user *User) (*v1.UserIn
 	//	totalDeposit += vUserBalanceRecord.Amount
 	//	depositList = append(depositList, &v1.UserInfoReply_List13{
 	//		CreatedAt: vUserBalanceRecord.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-	//		Amount:    fmt.Sprintf("%.4f", float64(vUserBalanceRecord.Amount)/float64(10000000000)),
+	//		Amount:    fmt.Sprintf("%.4f", float64(vUserBalanceRecord.Amount)/float64(100000)),
 	//	})
 	//}
 	//
@@ -1211,19 +1211,19 @@ func (uuc *UserUseCase) UserInfoOld(ctx context.Context, user *User) (*v1.UserIn
 	//			}
 	//			locationRewardList = append(locationRewardList, &v1.UserInfoReply_List2{
 	//				CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-	//				Amount:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)),
+	//				Amount:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)),
 	//			})
 	//
 	//			userRewardTotal += vUserReward.Amount
 	//			allRewardList = append(allRewardList, &v1.UserInfoReply_List9{
 	//				CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-	//				Amount:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)),
+	//				Amount:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)),
 	//			})
 	//		} else if "recommend" == vUserReward.Reason {
 	//
 	//			recommendRewardList = append(recommendRewardList, &v1.UserInfoReply_List5{
 	//				CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-	//				Amount:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)),
+	//				Amount:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)),
 	//			})
 	//
 	//			recommendRewardTotal += vUserReward.Amount
@@ -1234,7 +1234,7 @@ func (uuc *UserUseCase) UserInfoOld(ctx context.Context, user *User) (*v1.UserIn
 	//			userRewardTotal += vUserReward.Amount
 	//			allRewardList = append(allRewardList, &v1.UserInfoReply_List9{
 	//				CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-	//				Amount:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)),
+	//				Amount:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)),
 	//			})
 	//		} else if "reward_withdraw" == vUserReward.Reason {
 	//			userRewardTotal += vUserReward.Amount
@@ -1267,19 +1267,19 @@ func (uuc *UserUseCase) UserInfoOld(ctx context.Context, user *User) (*v1.UserIn
 	//	Amount:                  amount,
 	//	Amount2:                 amount2,
 	//	LocationList2:           myLocations2,
-	//	AmountB:                 fmt.Sprintf("%.2f", float64(myLastLocationCurrent)/float64(10000000000)),
+	//	AmountB:                 fmt.Sprintf("%.2f", float64(myLastLocationCurrent)/float64(100000)),
 	//	DepositList:             depositList,
-	//	BalanceUsdt:             fmt.Sprintf("%.2f", float64(userBalance.BalanceUsdt)/float64(10000000000)),
-	//	BalanceUsdt2:            fmt.Sprintf("%.2f", float64(userBalance.BalanceUsdt2)/float64(10000000000)),
-	//	BalanceDhb:              fmt.Sprintf("%.2f", float64(userBalance.BalanceDhb)/float64(10000000000)),
+	//	BalanceUsdt:             fmt.Sprintf("%.2f", float64(userBalance.BalanceUsdt)/float64(100000)),
+	//	BalanceUsdt2:            fmt.Sprintf("%.2f", float64(userBalance.BalanceUsdt2)/float64(100000)),
+	//	BalanceDhb:              fmt.Sprintf("%.2f", float64(userBalance.BalanceDhb)/float64(100000)),
 	//	InviteUrl:               encodeString,
 	//	RecommendNum:            userInfo.HistoryRecommend,
 	//	RecommendTeamNum:        recommendTeamNum,
-	//	Total:                   fmt.Sprintf("%.2f", float64(userRewardTotal)/float64(10000000000)),
-	//	RewardWithdraw:          fmt.Sprintf("%.2f", float64(userRewardWithdrawTotal)/float64(10000000000)),
-	//	WithdrawAmount:          fmt.Sprintf("%.2f", float64(withdrawAmount)/float64(10000000000)),
-	//	WithdrawAmount2:         fmt.Sprintf("%.2f", float64(withdrawAmount2)/float64(10000000000)),
-	//	LocationTotal:           fmt.Sprintf("%.2f", float64(locationTotal)/float64(10000000000)),
+	//	Total:                   fmt.Sprintf("%.2f", float64(userRewardTotal)/float64(100000)),
+	//	RewardWithdraw:          fmt.Sprintf("%.2f", float64(userRewardWithdrawTotal)/float64(100000)),
+	//	WithdrawAmount:          fmt.Sprintf("%.2f", float64(withdrawAmount)/float64(100000)),
+	//	WithdrawAmount2:         fmt.Sprintf("%.2f", float64(withdrawAmount2)/float64(100000)),
+	//	LocationTotal:           fmt.Sprintf("%.2f", float64(locationTotal)/float64(100000)),
 	//	Account:                 "0xAfC39F3592A1024144D1ba6DC256397F4DbfbE2f",
 	//	LocationList:            myLocations,
 	//	TeamAddressList:         teamUserAddresses,
@@ -1287,10 +1287,10 @@ func (uuc *UserUseCase) UserInfoOld(ctx context.Context, user *User) (*v1.UserIn
 	//	InviteUserAddress:       inviteUserAddress,
 	//	RecommendAddressList:    recommendAddresses,
 	//	WithdrawRate:            withdrawRate,
-	//	RecommendRewardTotal:    fmt.Sprintf("%.2f", float64(recommendRewardTotal)/float64(10000000000)),
-	//	RecommendRewardDhbTotal: fmt.Sprintf("%.2f", float64(recommendRewardDhbTotal)/float64(10000000000)),
-	//	TotalDeposit:            fmt.Sprintf("%.2f", float64(totalDeposit)/float64(10000000000)),
-	//	WithdrawAll:             fmt.Sprintf("%.2f", float64(withdrawAmount+withdrawAmount2)/float64(10000000000)),
+	//	RecommendRewardTotal:    fmt.Sprintf("%.2f", float64(recommendRewardTotal)/float64(100000)),
+	//	RecommendRewardDhbTotal: fmt.Sprintf("%.2f", float64(recommendRewardDhbTotal)/float64(100000)),
+	//	TotalDeposit:            fmt.Sprintf("%.2f", float64(totalDeposit)/float64(100000)),
+	//	WithdrawAll:             fmt.Sprintf("%.2f", float64(withdrawAmount+withdrawAmount2)/float64(100000)),
 	//}, nil
 	return nil, nil
 
@@ -1350,7 +1350,7 @@ func (uuc *UserUseCase) TranList(ctx context.Context, user *User, reqTypeCoin st
 	for _, v := range userBalanceRecord {
 		res.Tran = append(res.Tran, &v1.TranListReply_List{
 			CreatedAt: v.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-			Amount:    fmt.Sprintf("%.2f", float64(v.Amount)/float64(10000000000)),
+			Amount:    fmt.Sprintf("%.2f", float64(v.Amount)/float64(100000)),
 		})
 	}
 
@@ -1381,7 +1381,7 @@ func (uuc *UserUseCase) WithdrawList(ctx context.Context, user *User, reqTypeCoi
 	for _, v := range withdraws {
 		res.Withdraw = append(res.Withdraw, &v1.WithdrawListReply_List{
 			CreatedAt: v.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-			Amount:    fmt.Sprintf("%.2f", float64(v.Amount)/float64(10000000000)),
+			Amount:    fmt.Sprintf("%.2f", float64(v.Amount)/float64(100000)),
 			Status:    v.Status,
 			Type:      v.Type,
 		})
@@ -1409,8 +1409,8 @@ func (uuc *UserUseCase) TradeList(ctx context.Context, user *User) (*v1.TradeLis
 	for _, v := range trades {
 		res.Trade = append(res.Trade, &v1.TradeListReply_List{
 			CreatedAt: v.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-			AmountCsd: fmt.Sprintf("%.2f", float64(v.AmountCsd)/float64(10000000000)),
-			AmountHbs: fmt.Sprintf("%.2f", float64(v.AmountHbs)/float64(10000000000)),
+			AmountCsd: fmt.Sprintf("%.2f", float64(v.AmountCsd)/float64(100000)),
+			AmountHbs: fmt.Sprintf("%.2f", float64(v.AmountHbs)/float64(100000)),
 			Status:    v.Status,
 		})
 	}
@@ -1432,7 +1432,7 @@ func (uuc *UserUseCase) Exchange(ctx context.Context, req *v1.ExchangeRequest, u
 	}
 
 	amountFloat, _ := strconv.ParseFloat(req.SendBody.Amount, 10)
-	amountFloat *= 10000000000
+	amountFloat *= 100000
 	amount, _ := strconv.ParseInt(strconv.FormatFloat(amountFloat, 'f', -1, 64), 10, 64)
 
 	if userBalance.BalanceDhb < amount {
@@ -1441,7 +1441,7 @@ func (uuc *UserUseCase) Exchange(ctx context.Context, req *v1.ExchangeRequest, u
 		}, nil
 	}
 
-	if 10000000000 > amount {
+	if 100000 > amount {
 		return &v1.ExchangeReply{
 			Status: "fail",
 		}, nil
@@ -1540,7 +1540,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 	}
 
 	amountFloat, _ := strconv.ParseFloat(req.SendBody.Amount, 10)
-	amountFloat *= 10000000000
+	amountFloat *= 100000
 	amount, _ := strconv.ParseInt(strconv.FormatFloat(amountFloat, 'f', -1, 64), 10, 64)
 
 	//if "dhb" == req.SendBody.Type {
@@ -1550,7 +1550,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 	//		}, nil
 	//	}
 	//
-	//	if 1000000000000 > amount {
+	//	if 10000000 > amount {
 	//		return &v1.WithdrawReply{
 	//			Status: "fail",
 	//		}, nil
@@ -1564,7 +1564,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 			}, nil
 		}
 
-		if 100000000000 > amount {
+		if 1000000 > amount {
 			return &v1.WithdrawReply{
 				Status: "fail",
 			}, nil
@@ -1578,7 +1578,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 	//		}, nil
 	//	}
 	//
-	//	if 100000000000 > amount {
+	//	if 1000000 > amount {
 	//		return &v1.WithdrawReply{
 	//			Status: "fail",
 	//		}, nil
@@ -1658,7 +1658,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 		//	if nil != err {
 		//		return err
 		//	}
-		//	_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount-100000000000, 100000000000, req.SendBody.Type)
+		//	_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount-1000000, 1000000, req.SendBody.Type)
 		//	if nil != err {
 		//		return err
 		//	}
@@ -1730,7 +1730,7 @@ func (uuc *UserUseCase) Tran(ctx context.Context, req *v1.TranRequest, user *Use
 	}
 
 	amountFloat, _ := strconv.ParseFloat(req.SendBody.Amount, 10)
-	amountFloat *= 10000000000
+	amountFloat *= 100000
 	amount, _ := strconv.ParseInt(strconv.FormatFloat(amountFloat, 'f', -1, 64), 10, 64)
 
 	if "dhb" == req.SendBody.Type {
@@ -1740,7 +1740,7 @@ func (uuc *UserUseCase) Tran(ctx context.Context, req *v1.TranRequest, user *Use
 			}, nil
 		}
 
-		if 1000000000000 > amount {
+		if 10000000 > amount {
 			return &v1.TranReply{
 				Status: "fail",
 			}, nil
@@ -1754,7 +1754,7 @@ func (uuc *UserUseCase) Tran(ctx context.Context, req *v1.TranRequest, user *Use
 			}, nil
 		}
 
-		if 100000000000 > amount {
+		if 1000000 > amount {
 			return &v1.TranReply{
 				Status: "fail",
 			}, nil
@@ -1963,7 +1963,7 @@ func (uuc *UserUseCase) SetBalanceReward(ctx context.Context, req *v1.SetBalance
 	)
 
 	amountFloat, _ := strconv.ParseFloat(req.SendBody.Amount, 10)
-	amountFloat *= 10000000000
+	amountFloat *= 100000
 	amount, _ := strconv.ParseInt(strconv.FormatFloat(amountFloat, 'f', -1, 64), 10, 64)
 	if 0 >= amount {
 		return &v1.SetBalanceRewardReply{
@@ -2006,7 +2006,7 @@ func (uuc *UserUseCase) DeleteBalanceReward(ctx context.Context, req *v1.DeleteB
 	)
 
 	amountFloat, _ := strconv.ParseFloat(req.SendBody.Amount, 10)
-	amountFloat *= 10000000000
+	amountFloat *= 100000
 	amount, _ := strconv.ParseInt(strconv.FormatFloat(amountFloat, 'f', -1, 64), 10, 64)
 	if 0 >= amount {
 		return &v1.DeleteBalanceRewardReply{
