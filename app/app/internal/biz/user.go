@@ -141,6 +141,8 @@ type UserBalanceRecord struct {
 	UserId    int64
 	Amount    int64
 	CoinType  string
+	Balance   int64
+	Type      string
 	CreatedAt time.Time
 }
 
@@ -810,6 +812,22 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		}
 	}
 
+	var (
+		userBalanceRecord []*UserBalanceRecord
+	)
+	userBalanceRecord, err = uuc.ubRepo.GetUserBalanceRecordByUserId(ctx, myUser.ID, "dhb", "exchange")
+	if nil != err {
+		return nil, err
+	}
+	listExchange := make([]*v1.UserInfoReply_ListExchange, 0)
+	for _, v := range userBalanceRecord {
+		listExchange = append(listExchange, &v1.UserInfoReply_ListExchange{
+			Amount:     fmt.Sprintf("%.2f", float64(v.Balance)/float64(10000000000)) + "ISPS",
+			UsdtAmount: fmt.Sprintf("%.2f", float64(v.Amount)/float64(10000000000)),
+			Created:    v.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
+		})
+	}
+
 	// 全球
 	var (
 		day               = -1
@@ -931,6 +949,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		LocationUsdtAll:       "",
 		ListReward:            listReward,
 		ListRecommend:         myRecommendList,
+		ListExchange:          listExchange,
 	}, nil
 }
 

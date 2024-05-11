@@ -866,6 +866,10 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/UserInfoReply_ListRecommend'
+                listExchange:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/UserInfoReply_ListExchange'
         UserInfoReply_List:
             type: object
             properties:
@@ -874,6 +878,15 @@ components:
                 currentMaxSubCurrent:
                     type: string
                 amount:
+                    type: string
+        UserInfoReply_ListExchange:
+            type: object
+            properties:
+                amount:
+                    type: string
+                usdtAmount:
+                    type: string
+                created:
                     type: string
         UserInfoReply_ListFour:
             type: object

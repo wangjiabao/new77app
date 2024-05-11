@@ -1644,7 +1644,9 @@ func (ub *UserBalanceRepo) GetUserBalanceRecordByUserId(ctx context.Context, use
 			ID:        v.ID,
 			UserId:    v.UserId,
 			Amount:    v.Amount,
+			Type:      v.Type,
 			CreatedAt: v.CreatedAt,
+			Balance:   v.Balance,
 		})
 	}
 	return res, nil

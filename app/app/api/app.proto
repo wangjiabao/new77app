@@ -325,6 +325,13 @@ message UserInfoReply {
 	message ListRecommend {
 		string address = 1; // 地址
 	}
+
+	repeated ListExchange listExchange = 41; // 收益列表，挖矿，分享，前四名
+	message ListExchange {
+		string amount = 1;
+		string usdtAmount = 3;
+		string created = 2;
+	}
 }
 
 message UserInfo1Reply {
