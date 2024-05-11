@@ -41,6 +41,7 @@ type LocationNew struct {
 	Total             int64     `gorm:"type:int"`
 	TotalTwo          int64     `gorm:"type:int"`
 	TotalThree        int64     `gorm:"type:int"`
+	LastLevel         int64     `gorm:"type:bigint;not null"`
 }
 
 type GlobalLock struct {
@@ -328,6 +329,7 @@ func (lr *LocationRepo) GetLocationsByUserId(ctx context.Context, userId int64) 
 			Total:         location.Total,
 			TotalTwo:      location.TotalTwo,
 			TotalThree:    location.TotalThree,
+			LastLevel:     location.LastLevel,
 		})
 	}
 

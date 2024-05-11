@@ -132,6 +132,7 @@ type LocationNew struct {
 	Total             int64
 	TotalTwo          int64
 	TotalThree        int64
+	LastLevel         int64
 	StopDate          time.Time
 	CreatedAt         time.Time
 }
@@ -679,6 +680,10 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 			}
 
 			if tmpLastLevel > lastLevel {
+				lastLevel = tmpLastLevel
+			}
+
+			if v.LastLevel > lastLevel {
 				lastLevel = tmpLastLevel
 			}
 		}
