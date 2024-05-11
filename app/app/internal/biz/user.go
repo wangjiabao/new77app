@@ -484,7 +484,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		three                 int64
 		four                  int64
 		exchangeRate          int64
-		lastLevel             int64
+		lastLevel             int64 = -1
 		areaOne               int64
 		areaTwo               int64
 		areaThree             int64
