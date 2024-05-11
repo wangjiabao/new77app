@@ -812,7 +812,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 
 	// 全球
 	var (
-		day               = 0
+		day               = -1
 		userLocationsYes  []*LocationNew
 		userLocationsBef  []*LocationNew
 		rewardLocationYes int64

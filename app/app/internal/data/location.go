@@ -3,7 +3,6 @@ package data
 import (
 	"context"
 	"dhb/app/app/internal/biz"
-	"fmt"
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
@@ -279,7 +278,6 @@ func (lr *LocationRepo) GetLocationDailyYesterday(ctx context.Context, day int) 
 
 	instance = instance.Where("created_at>=?", todayStart)
 	instance = instance.Where("created_at<?", todayEnd)
-	fmt.Println(todayStart, todayEnd)
 	if err := instance.Order("id desc").Find(&locations).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return res, errors.NotFound("LOCATION_NOT_FOUND", "location not found")
