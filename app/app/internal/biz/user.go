@@ -2049,6 +2049,10 @@ func (uuc *UserUseCase) GetUserByUserIds(ctx context.Context, userIds ...int64) 
 	return uuc.repo.GetUserByUserIds(ctx, userIds...)
 }
 
+func (uuc *UserUseCase) GetUserByUserId(ctx context.Context, userId int64) (*User, error) {
+	return uuc.repo.GetUserById(ctx, userId)
+}
+
 func (uuc *UserUseCase) AdminLocationList(ctx context.Context, req *v1.AdminLocationListRequest) (*v1.AdminLocationListReply, error) {
 	res := &v1.AdminLocationListReply{
 		Locations: make([]*v1.AdminLocationListReply_LocationList, 0),

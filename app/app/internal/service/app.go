@@ -282,9 +282,11 @@ func (a *AppService) Exchange(ctx context.Context, req *v1.ExchangeRequest) (*v1
 func (a *AppService) Withdraw(ctx context.Context, req *v1.WithdrawRequest) (*v1.WithdrawReply, error) {
 	// 在上下文 context 中取出 claims 对象
 	var (
+		err           error
 		userId        int64
 		tokenPassword string
 	)
+
 	if claims, ok := jwt.FromContext(ctx); ok {
 		c := claims.(jwt2.MapClaims)
 		if c["UserId"] == nil {
@@ -295,6 +297,24 @@ func (a *AppService) Withdraw(ctx context.Context, req *v1.WithdrawRequest) (*v1
 		//}
 		userId = int64(c["UserId"].(float64))
 		//tokenPassword = c["Password"].(string)
+	}
+
+	var (
+		user *biz.User
+	)
+	user, err = a.uuc.GetUserByUserId(ctx, userId)
+	if nil != err {
+		return nil, err
+	}
+
+	var (
+		res             bool
+		addressFromSign string
+	)
+	res, addressFromSign = verifySig(req.SendBody.Sign, []byte(""))
+	if !res || addressFromSign != user.Address {
+		fmt.Println(user.Address, addressFromSign)
+		return nil, errors.New(500, "AUTHORIZE_ERROR", "地址签名错误")
 	}
 
 	//if "" == req.SendBody.Password || 6 > len(req.SendBody.Password) {
@@ -821,6 +841,7 @@ func verifySig(sigHex string, msg []byte) (bool, string) {
 
 	recovered, err := crypto.SigToPub(msg, sig)
 	if err != nil {
+		fmt.Println(err)
 		return false, ""
 	}
 

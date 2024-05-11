@@ -536,6 +536,7 @@ message WithdrawRequest {
 		string type = 2;
 		string amount = 1;
 		string password = 3;
+		string sign = 4;
 	}
 
 	SendBody send_body = 1;

@@ -872,6 +872,8 @@ func (m *UserInfoReply) validate(all bool) error {
 
 	// no validation rules for ExchangeRate
 
+	// no validation rules for LastLevel
+
 	for idx, item := range m.GetLocationList() {
 		_, _ = idx, item
 
@@ -10439,6 +10441,8 @@ func (m *WithdrawRequest_SendBody) validate(all bool) error {
 	// no validation rules for Amount
 
 	// no validation rules for Password
+
+	// no validation rules for Sign
 
 	if len(errors) > 0 {
 		return WithdrawRequest_SendBodyMultiError(errors)
