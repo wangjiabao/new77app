@@ -1492,7 +1492,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 	//	return nil, errors.New(500, "密码错误", "密码错误")
 	//}
 
-	if "usdt" != req.SendBody.Type {
+	if "2" != req.SendBody.Type {
 		return &v1.WithdrawReply{
 			Status: "fail",
 		}, nil
@@ -1521,7 +1521,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 	//	}
 	//}
 
-	if "usdt" == req.SendBody.Type {
+	if "2" == req.SendBody.Type {
 		if userBalance.BalanceUsdt < amount {
 			return &v1.WithdrawReply{
 				Status: "fail",
