@@ -1212,11 +1212,21 @@ func (ub *UserBalanceRepo) WithdrawUsdt2(ctx context.Context, userId int64, amou
 }
 
 // Exchange .
-func (ub *UserBalanceRepo) Exchange(ctx context.Context, userId int64, amount int64, amountUsdt int64) error {
-	var err error
+func (ub *UserBalanceRepo) Exchange(ctx context.Context, userId int64, amount int64, amountUsdtSub int64, amountUsdt int64, locationId int64) error {
+	var (
+		err error
+	)
+	res := ub.data.DB(ctx).Table("location_new").
+		Where("id=?", locationId).
+		Where("status=?", "running").
+		Updates(map[string]interface{}{"current_max_new": gorm.Expr("current_max_new + ?", amountUsdt)})
+	if 0 == res.RowsAffected || res.Error != nil {
+		return res.Error
+	}
+
 	if res := ub.data.DB(ctx).Table("user_balance").
 		Where("user_id=? and balance_dhb>=?", userId, amount).
-		Updates(map[string]interface{}{"balance_dhb": gorm.Expr("balance_dhb - ?", amount), "balance_usdt": gorm.Expr("balance_usdt + ?", amountUsdt)}); 0 == res.RowsAffected || nil != res.Error {
+		Updates(map[string]interface{}{"balance_dhb": gorm.Expr("balance_dhb - ?", amount), "balance_usdt": gorm.Expr("balance_usdt + ?", amountUsdtSub)}); 0 == res.RowsAffected || nil != res.Error {
 		return errors.NotFound("user balance err", "user balance error")
 	}
 
@@ -1231,7 +1241,7 @@ func (ub *UserBalanceRepo) Exchange(ctx context.Context, userId int64, amount in
 	userBalanceRecode.UserId = userBalance.UserId
 	userBalanceRecode.Type = "exchange"
 	userBalanceRecode.CoinType = "dhb"
-	userBalanceRecode.Amount = amountUsdt
+	userBalanceRecode.Amount = amountUsdtSub
 	err = ub.data.DB(ctx).Table("user_balance_record").Create(&userBalanceRecode).Error
 	if err != nil {
 		return err

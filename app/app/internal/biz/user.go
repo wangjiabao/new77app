@@ -209,7 +209,7 @@ type UserBalanceRepo interface {
 	GreateWithdraw(ctx context.Context, userId int64, relAmount int64, amount int64, amountFee int64, coinType string) (*Withdraw, error)
 	WithdrawUsdt(ctx context.Context, userId int64, amount int64, tmpRecommendUserIdsInt []int64) error
 	WithdrawUsdt2(ctx context.Context, userId int64, amount int64) error
-	Exchange(ctx context.Context, userId int64, amount int64, amountUsdt int64) error
+	Exchange(ctx context.Context, userId int64, amount int64, amountUsdtSubFee int64, amountUsdt int64, locationId int64) error
 	WithdrawUsdt3(ctx context.Context, userId int64, amount int64) error
 	TranUsdt(ctx context.Context, userId int64, toUserId int64, amount int64, tmpRecommendUserIdsInt []int64, tmpRecommendUserIdsInt2 []int64) error
 	WithdrawDhb(ctx context.Context, userId int64, amount int64) error
@@ -1498,16 +1498,45 @@ func (uuc *UserUseCase) Exchange(ctx context.Context, req *v1.ExchangeRequest, u
 	}
 
 	amountUsdt := amount / bPriceBase * bPrice
-	amountUsdt = amountUsdt - amountUsdt*exchangeRate/1000
+	amountUsdtSubFee := amountUsdt - amountUsdt*exchangeRate/1000
 	if amountUsdt <= 0 {
 		return &v1.ExchangeReply{
 			Status: "fail price",
 		}, nil
 	}
 
+	var (
+		locations       []*LocationNew
+		runningLocation *LocationNew
+	)
+
+	locations, err = uuc.locationRepo.GetLocationsByUserId(ctx, user.ID)
+	if nil != err {
+		return nil, err
+	}
+
+	if 0 >= len(locations) {
+		return &v1.ExchangeReply{
+			Status: "fail location",
+		}, nil
+	}
+
+	runningLocation = locations[0]
+	if "running" != runningLocation.Status {
+		return &v1.ExchangeReply{
+			Status: "fail location",
+		}, nil
+	}
+
+	if runningLocation.CurrentMax < runningLocation.CurrentMaxNew+amountUsdt {
+		return &v1.ExchangeReply{
+			Status: "fail location max",
+		}, nil
+	}
+
 	if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
 
-		err = uuc.ubRepo.Exchange(ctx, user.ID, amount, amountUsdt) // 提现
+		err = uuc.ubRepo.Exchange(ctx, user.ID, amount, amountUsdtSubFee, amountUsdt, runningLocation.ID) // 提现
 		if nil != err {
 			return err
 		}
