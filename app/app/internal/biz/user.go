@@ -826,13 +826,13 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	}
 	userLocationsBef, err = uuc.locationRepo.GetLocationDailyYesterday(ctx, day-1)
 	for _, userLocationBef := range userLocationsBef {
-		rewardLocationYes += userLocationBef.Usdt
+		rewardLocationBef += userLocationBef.Usdt
 	}
 	if rewardLocationYes > 0 {
 		totalRewardYes = rewardLocationYes / 100 * total
 	}
 	if rewardLocationBef > 0 {
-		totalRewardBef = rewardLocationBef / 100 / 100 * 30 * total
+		totalRewardBef = rewardLocationBef / 100 * total
 	}
 
 	totalReward := rewardLocationYes/100/100*70*total + rewardLocationBef/100/100*30*total
