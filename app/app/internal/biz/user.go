@@ -1475,6 +1475,9 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 		userBalance *UserBalance
 	)
 
+	if "2" == req.SendBody.Type {
+		req.SendBody.Type = "usdt"
+	}
 	//u, _ = uuc.repo.GetUserById(ctx, user.ID)
 	//if nil != err {
 	//	return nil, err
@@ -1492,7 +1495,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 	//	return nil, errors.New(500, "密码错误", "密码错误")
 	//}
 
-	if "2" != req.SendBody.Type {
+	if "usdt" != req.SendBody.Type {
 		return &v1.WithdrawReply{
 			Status: "fail",
 		}, nil
@@ -1521,7 +1524,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 	//	}
 	//}
 
-	if "2" == req.SendBody.Type {
+	if "usdt" == req.SendBody.Type {
 		if userBalance.BalanceUsdt < amount {
 			return &v1.WithdrawReply{
 				Status: "fail",
@@ -1595,7 +1598,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 
 	if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
 
-		if "2" == req.SendBody.Type {
+		if "usdt" == req.SendBody.Type {
 			err = uuc.ubRepo.WithdrawUsdt2(ctx, user.ID, amount) // 提现
 			if nil != err {
 				return err
