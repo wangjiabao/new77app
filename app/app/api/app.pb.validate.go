@@ -1108,6 +1108,14 @@ func (m *UserInfoReply) validate(all bool) error {
 
 	}
 
+	// no validation rules for ConfigOne
+
+	// no validation rules for ConfigTwo
+
+	// no validation rules for ConfigThree
+
+	// no validation rules for ConfigFour
+
 	if len(errors) > 0 {
 		return UserInfoReplyMultiError(errors)
 	}

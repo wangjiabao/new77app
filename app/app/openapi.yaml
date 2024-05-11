@@ -870,6 +870,14 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/UserInfoReply_ListExchange'
+                configOne:
+                    type: string
+                configTwo:
+                    type: string
+                configThree:
+                    type: string
+                configFour:
+                    type: string
         UserInfoReply_List:
             type: object
             properties:

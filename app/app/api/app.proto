@@ -332,6 +332,11 @@ message UserInfoReply {
 		string usdtAmount = 3;
 		string created = 2;
 	}
+
+	string configOne = 45;
+	string configTwo = 46;
+	string configThree = 47;
+	string configFour = 48;
 }
 
 message UserInfo1Reply {

@@ -490,6 +490,10 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		areaThree             int64
 		areaFour              int64
 		areaFive              int64
+		configOne             string
+		configTwo             string
+		configThree           string
+		configFour            string
 	)
 
 	// 配置
@@ -505,6 +509,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		"total",
 		"one", "two", "three", "four",
 		"area_one", "area_two", "area_three", "area_four", "area_five",
+		"config_one", "config_two", "config_three", "config_four",
 	)
 	if nil != configs {
 		for _, vConfig := range configs {
@@ -562,6 +567,19 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 			if "area_five" == vConfig.KeyName {
 				areaFive, _ = strconv.ParseInt(vConfig.Value, 10, 64)
 			}
+			if "config_one" == vConfig.KeyName {
+				configOne = vConfig.Value
+			}
+			if "config_two" == vConfig.KeyName {
+				configTwo = vConfig.Value
+			}
+			if "config_three" == vConfig.KeyName {
+				configThree = vConfig.Value
+			}
+			if "config_four" == vConfig.KeyName {
+				configFour = vConfig.Value
+			}
+
 		}
 	}
 
@@ -963,6 +981,10 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		ListReward:            listReward,
 		ListRecommend:         myRecommendList,
 		LastLevel:             lastLevel,
+		ConfigFour:            configFour,
+		ConfigOne:             configOne,
+		ConfigThree:           configThree,
+		ConfigTwo:             configTwo,
 	}, nil
 }
 
