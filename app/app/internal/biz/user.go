@@ -1595,7 +1595,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 
 	if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
 
-		if "usdt" == req.SendBody.Type {
+		if "2" == req.SendBody.Type {
 			err = uuc.ubRepo.WithdrawUsdt2(ctx, user.ID, amount) // 提现
 			if nil != err {
 				return err
