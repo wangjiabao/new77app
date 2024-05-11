@@ -597,7 +597,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 			}
 
 			if "running" == v.Status {
-				currentAmountBiw = fmt.Sprintf("%.4f", float64(tmp)/float64(10000000000))
+				currentAmountBiw = fmt.Sprintf("%.2f", float64(tmp)/float64(10000000000))
 				areaAll = v.Total + v.TotalThree + v.TotalTwo
 				if v.TotalTwo >= v.Total && v.TotalTwo >= v.TotalThree {
 					areaMax = v.TotalTwo
@@ -611,10 +611,10 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 					areaMax = v.TotalThree
 					areaMin = v.TotalTwo + v.Total
 				}
-				locationUsdt = fmt.Sprintf("%.4f", float64(v.Usdt)/float64(10000000000))
+				locationUsdt = fmt.Sprintf("%.2f", float64(v.Usdt)/float64(10000000000))
 
-				locationCurrent = fmt.Sprintf("%.4f", float64(v.Current)/float64(10000000000))
-				locationCurrentMaxSub = fmt.Sprintf("%.4f", float64(v.CurrentMax-v.Current)/float64(10000000000))
+				locationCurrent = fmt.Sprintf("%.2f", float64(v.Current)/float64(10000000000))
+				locationCurrentMaxSub = fmt.Sprintf("%.2f", float64(v.CurrentMax-v.Current)/float64(10000000000))
 			}
 
 			if "stop" == v.Status {
@@ -622,9 +622,9 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 			}
 
 			myLocations = append(myLocations, &v1.UserInfoReply_List{
-				Current:              fmt.Sprintf("%.4f", float64(v.Current)/float64(10000000000)),
-				CurrentMaxSubCurrent: fmt.Sprintf("%.4f", float64(tmp)/float64(10000000000)),
-				Amount:               fmt.Sprintf("%.4f", float64(v.CurrentMax)/float64(10000000000)/2.5),
+				Current:              fmt.Sprintf("%.2f", float64(v.Current)/float64(10000000000)),
+				CurrentMaxSubCurrent: fmt.Sprintf("%.2f", float64(tmp)/float64(10000000000)),
+				Amount:               fmt.Sprintf("%.2f", float64(v.CurrentMax)/float64(10000000000)/2.5),
 			})
 			var tmpLastLevel int64
 			// 1大区
@@ -769,7 +769,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		}
 
 		withdrawList = append(withdrawList, &v1.UserInfoReply_ListWithdraw{
-			Amount:   fmt.Sprintf("%.4f", float64(v.RelAmount)/float64(10000000000)),
+			Amount:   fmt.Sprintf("%.2f", float64(v.RelAmount)/float64(10000000000)),
 			CreateAt: v.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
 		})
 	}
@@ -806,26 +806,34 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)),
 					Type:      3,
 				})
+			} else if "exchange" == vUserReward.Reason {
+				listReward = append(listReward, &v1.UserInfoReply_ListReward{
+					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
+					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)) + "ISPS",
+					Type:      7,
+				})
+			} else if "exchange_2" == vUserReward.Reason {
+				listReward = append(listReward, &v1.UserInfoReply_ListReward{
+					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
+					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)) + "ISPS",
+					Type:      7,
+				})
+			} else if "withdraw" == vUserReward.Reason {
+				listReward = append(listReward, &v1.UserInfoReply_ListReward{
+					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
+					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)),
+					Type:      6,
+				})
+			} else if "buy" == vUserReward.Reason {
+				listReward = append(listReward, &v1.UserInfoReply_ListReward{
+					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
+					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)),
+					Type:      5,
+				})
 			} else {
 				continue
 			}
 		}
-	}
-
-	var (
-		userBalanceRecord []*UserBalanceRecord
-	)
-	userBalanceRecord, err = uuc.ubRepo.GetUserBalanceRecordByUserId(ctx, myUser.ID, "dhb", "exchange")
-	if nil != err {
-		return nil, err
-	}
-	listExchange := make([]*v1.UserInfoReply_ListExchange, 0)
-	for _, v := range userBalanceRecord {
-		listExchange = append(listExchange, &v1.UserInfoReply_ListExchange{
-			Amount:     fmt.Sprintf("%.2f", float64(v.Balance)/float64(10000000000)) + "ISPS",
-			UsdtAmount: fmt.Sprintf("%.2f", float64(v.Amount)/float64(10000000000)),
-			Created:    v.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-		})
 	}
 
 	// 全球
@@ -901,15 +909,15 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		fourList = append(fourList, &v1.UserInfoReply_ListFour{
 			Location: address1,
 			Amount:   userRecommendFour.Total,
-			Reward:   fmt.Sprintf("%.4f", float64(tmpMyRecommendAmount)/float64(10000000000)),
+			Reward:   fmt.Sprintf("%.2f", float64(tmpMyRecommendAmount)/float64(10000000000)),
 		})
 	}
 
 	return &v1.UserInfoReply{
 		BiwPrice:              float64(bPrice) / float64(bPriceBase),
 		ExchangeRate:          float64(exchangeRate) / 1000,
-		BalanceBiw:            fmt.Sprintf("%.4f", float64(userBalance.BalanceDhb)/float64(10000000000)) + "ISPS",
-		BalanceUsdt:           fmt.Sprintf("%.4f", float64(userBalance.BalanceUsdt)/float64(10000000000)),
+		BalanceBiw:            fmt.Sprintf("%.2f", float64(userBalance.BalanceDhb)/float64(10000000000)) + "ISPS",
+		BalanceUsdt:           fmt.Sprintf("%.2f", float64(userBalance.BalanceUsdt)/float64(10000000000)),
 		BiwDaily:              "",
 		BuyNumTwo:             count2,
 		BuyNumThree:           count3,
@@ -931,12 +939,12 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		InviteUserAddress:     inviteUserAddress,
 		InviteUrl:             encodeString,
 		Count:                 stopCount,
-		LocationReward:        fmt.Sprintf("%.4f", float64(userBalance.LocationTotal)/float64(10000000000)) + "ISPS",
-		RecommendReward:       fmt.Sprintf("%.4f", float64(userBalance.RecommendTotal)/float64(10000000000)) + "ISPS",
-		FourReward:            fmt.Sprintf("%.4f", float64(userBalance.FourTotal)/float64(10000000000)),
-		AreaReward:            fmt.Sprintf("%.4f", float64(userBalance.AreaTotal)/float64(10000000000)) + "ISPS",
-		FourRewardPool:        fmt.Sprintf("%.4f", float64(totalRewardYes)/float64(10000000000)),
-		FourRewardPoolYes:     fmt.Sprintf("%.4f", float64(totalRewardBef)/float64(10000000000)),
+		LocationReward:        fmt.Sprintf("%.2f", float64(userBalance.LocationTotal)/float64(10000000000)) + "ISPS",
+		RecommendReward:       fmt.Sprintf("%.2f", float64(userBalance.RecommendTotal)/float64(10000000000)) + "ISPS",
+		FourReward:            fmt.Sprintf("%.2f", float64(userBalance.FourTotal)/float64(10000000000)),
+		AreaReward:            fmt.Sprintf("%.2f", float64(userBalance.AreaTotal)/float64(10000000000)) + "ISPS",
+		FourRewardPool:        fmt.Sprintf("%.2f", float64(totalRewardYes)/float64(10000000000)),
+		FourRewardPoolYes:     fmt.Sprintf("%.2f", float64(totalRewardBef)/float64(10000000000)),
 		Four:                  fourList,
 		AreaMax:               areaMax,
 		AreaMin:               areaMin,
@@ -949,7 +957,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		LocationUsdtAll:       "",
 		ListReward:            listReward,
 		ListRecommend:         myRecommendList,
-		ListExchange:          listExchange,
+		LastLevel:             lastLevel,
 	}, nil
 }
 
