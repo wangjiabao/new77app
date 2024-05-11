@@ -832,7 +832,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		totalRewardYes = rewardLocationYes / 100 * total
 	}
 	if rewardLocationBef > 0 {
-		totalRewardBef = rewardLocationBef / 100 * total
+		totalRewardBef = rewardLocationBef / 100 / 100 * 30 * total
 	}
 
 	totalReward := rewardLocationYes/100/100*70*total + rewardLocationBef/100/100*30*total
