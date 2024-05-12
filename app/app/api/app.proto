@@ -233,6 +233,7 @@ message EthAuthorizeReply {
 message RecommendUpdateRequest {
 	message SendBody{
 		string code = 1;
+		string sign = 2;
 	}
 
 	SendBody send_body = 1;
@@ -337,6 +338,7 @@ message UserInfoReply {
 	string configTwo = 46;
 	string configThree = 47;
 	string configFour = 48;
+	string status = 49;
 }
 
 message UserInfo1Reply {

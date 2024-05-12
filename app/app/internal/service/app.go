@@ -66,6 +66,14 @@ func (a *AppService) EthAuthorize(ctx context.Context, req *v1.EthAuthorizeReque
 	if !res {
 		return nil, errors.New(500, "AUTHORIZE_ERROR", "地址格式错误")
 	}
+	//
+	//var (
+	//	addressFromSign string
+	//)
+	//res, addressFromSign = verifySig(req.SendBody.Sign, []byte(userAddress))
+	//if !res || addressFromSign != userAddress {
+	//	return nil, errors.New(500, "AUTHORIZE_ERROR", "地址签名错误")
+	//}
 
 	//var (
 	//	addressFromSign string
@@ -136,19 +144,36 @@ func (a *AppService) UserInfo(ctx context.Context, req *v1.UserInfoRequest) (*v1
 // RecommendUpdate recommendUpdate.
 func (a *AppService) RecommendUpdate(ctx context.Context, req *v1.RecommendUpdateRequest) (*v1.RecommendUpdateReply, error) {
 	// 在上下文 context 中取出 claims 对象
-	//var userId int64
-	//if claims, ok := jwt.FromContext(ctx); ok {
-	//	c := claims.(jwt2.MapClaims)
-	//	if c["UserId"] == nil {
-	//		return nil, errors.New(500, "ERROR_TOKEN", "无效TOKEN")
-	//	}
-	//	userId = int64(c["UserId"].(float64))
-	//}
-	//
-	//return a.uuc.UpdateUserRecommend(ctx, &biz.User{
-	//	ID: userId,
-	//}, req)
-	return nil, nil
+	var userId int64
+	if claims, ok := jwt.FromContext(ctx); ok {
+		c := claims.(jwt2.MapClaims)
+		if c["UserId"] == nil {
+			return nil, errors.New(500, "ERROR_TOKEN", "无效TOKEN")
+		}
+		userId = int64(c["UserId"].(float64))
+	}
+
+	var (
+		user *biz.User
+		err  error
+	)
+	user, err = a.uuc.GetUserByUserId(ctx, userId)
+	if nil != err {
+		return nil, err
+	}
+
+	var (
+		res             bool
+		addressFromSign string
+	)
+	res, addressFromSign = verifySig(req.SendBody.Sign, []byte(user.Address))
+	if !res || addressFromSign != user.Address {
+		return nil, errors.New(500, "AUTHORIZE_ERROR", "地址签名错误")
+	}
+
+	return a.uuc.UpdateUserRecommend(ctx, &biz.User{
+		ID: userId,
+	}, req)
 }
 
 // RewardList rewardList.

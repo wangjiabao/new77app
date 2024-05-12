@@ -1116,6 +1116,8 @@ func (m *UserInfoReply) validate(all bool) error {
 
 	// no validation rules for ConfigFour
 
+	// no validation rules for Status
+
 	if len(errors) > 0 {
 		return UserInfoReplyMultiError(errors)
 	}
@@ -8008,6 +8010,8 @@ func (m *RecommendUpdateRequest_SendBody) validate(all bool) error {
 	var errors []error
 
 	// no validation rules for Code
+
+	// no validation rules for Sign
 
 	if len(errors) > 0 {
 		return RecommendUpdateRequest_SendBodyMultiError(errors)

@@ -666,6 +666,8 @@ components:
             properties:
                 code:
                     type: string
+                sign:
+                    type: string
         RewardListReply:
             type: object
             properties:
@@ -877,6 +879,8 @@ components:
                 configThree:
                     type: string
                 configFour:
+                    type: string
+                status:
                     type: string
         UserInfoReply_List:
             type: object

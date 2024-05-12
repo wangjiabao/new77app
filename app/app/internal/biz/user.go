@@ -420,6 +420,10 @@ func (uuc *UserUseCase) UpdateUserRecommend(ctx context.Context, u *User, req *v
 			return &v1.RecommendUpdateReply{InviteUserAddress: myRecommendUser.Address}, err
 		}
 
+		if u.ID == userId {
+			return &v1.RecommendUpdateReply{InviteUserAddress: myRecommendUser.Address}, err
+		}
+
 		// 我的占位信息
 		locations, err = uuc.locationRepo.GetLocationsByUserId(ctx, u.ID)
 		if nil != locations && 0 < len(locations) {
@@ -494,6 +498,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		configTwo             string
 		configThree           string
 		configFour            string
+		status                = "stop"
 	)
 
 	// 配置
@@ -616,6 +621,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 			}
 
 			if "running" == v.Status {
+				status = "running"
 				currentAmountBiw = fmt.Sprintf("%.2f", float64(tmp)/float64(100000))
 				areaAll = v.Total + v.TotalThree + v.TotalTwo
 				if v.TotalTwo >= v.Total && v.TotalTwo >= v.TotalThree {
@@ -937,6 +943,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	}
 
 	return &v1.UserInfoReply{
+		Status:                status,
 		BiwPrice:              float64(bPrice) / float64(bPriceBase),
 		ExchangeRate:          float64(exchangeRate) / 1000,
 		BalanceBiw:            fmt.Sprintf("%.2f", float64(userBalance.BalanceDhb)/float64(100000)) + "ISPS",
