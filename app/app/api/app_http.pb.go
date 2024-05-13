@@ -39,6 +39,7 @@ const OperationAppTrade = "/api.App/Trade"
 const OperationAppTradeList = "/api.App/TradeList"
 const OperationAppTran = "/api.App/Tran"
 const OperationAppTranList = "/api.App/TranList"
+const OperationAppUserArea = "/api.App/UserArea"
 const OperationAppUserInfo = "/api.App/UserInfo"
 const OperationAppWithdraw = "/api.App/Withdraw"
 const OperationAppWithdrawList = "/api.App/WithdrawList"
@@ -89,6 +90,7 @@ type AppHTTPServer interface {
 	TradeList(context.Context, *TradeListRequest) (*TradeListReply, error)
 	Tran(context.Context, *TranRequest) (*TranReply, error)
 	TranList(context.Context, *TranListRequest) (*TranListReply, error)
+	UserArea(context.Context, *UserAreaRequest) (*UserAreaReply, error)
 	UserInfo(context.Context, *UserInfoRequest) (*UserInfoReply, error)
 	Withdraw(context.Context, *WithdrawRequest) (*WithdrawReply, error)
 	WithdrawList(context.Context, *WithdrawListRequest) (*WithdrawListReply, error)
@@ -99,6 +101,7 @@ func RegisterAppHTTPServer(s *http.Server, srv AppHTTPServer) {
 	r.POST("/api/app_server/eth_authorize", _App_EthAuthorize0_HTTP_Handler(srv))
 	r.POST("/api/app_server/recommend_update", _App_RecommendUpdate0_HTTP_Handler(srv))
 	r.GET("/api/app_server/user_info", _App_UserInfo0_HTTP_Handler(srv))
+	r.GET("/api/app_server/user_area", _App_UserArea0_HTTP_Handler(srv))
 	r.GET("/api/app_server/reward_list", _App_RewardList0_HTTP_Handler(srv))
 	r.GET("/api/app_server/recommend_reward_list", _App_RecommendRewardList0_HTTP_Handler(srv))
 	r.GET("/api/app_server/fee_reward_list", _App_FeeRewardList0_HTTP_Handler(srv))
@@ -180,6 +183,25 @@ func _App_UserInfo0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error
 			return err
 		}
 		reply := out.(*UserInfoReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _App_UserArea0_HTTP_Handler(srv AppHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UserAreaRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAppUserArea)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UserArea(ctx, req.(*UserAreaRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UserAreaReply)
 		return ctx.Result(200, reply)
 	}
 }
@@ -609,6 +631,7 @@ type AppHTTPClient interface {
 	TradeList(ctx context.Context, req *TradeListRequest, opts ...http.CallOption) (rsp *TradeListReply, err error)
 	Tran(ctx context.Context, req *TranRequest, opts ...http.CallOption) (rsp *TranReply, err error)
 	TranList(ctx context.Context, req *TranListRequest, opts ...http.CallOption) (rsp *TranListReply, err error)
+	UserArea(ctx context.Context, req *UserAreaRequest, opts ...http.CallOption) (rsp *UserAreaReply, err error)
 	UserInfo(ctx context.Context, req *UserInfoRequest, opts ...http.CallOption) (rsp *UserInfoReply, err error)
 	Withdraw(ctx context.Context, req *WithdrawRequest, opts ...http.CallOption) (rsp *WithdrawReply, err error)
 	WithdrawList(ctx context.Context, req *WithdrawListRequest, opts ...http.CallOption) (rsp *WithdrawListReply, err error)
@@ -874,6 +897,19 @@ func (c *AppHTTPClientImpl) TranList(ctx context.Context, in *TranListRequest, o
 	pattern := "/api/app_server/tran_list"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationAppTranList))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *AppHTTPClientImpl) UserArea(ctx context.Context, in *UserAreaRequest, opts ...http.CallOption) (*UserAreaReply, error) {
+	var out UserAreaReply
+	pattern := "/api/app_server/user_area"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAppUserArea))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

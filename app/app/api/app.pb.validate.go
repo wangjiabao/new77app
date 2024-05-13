@@ -704,6 +704,242 @@ var _ interface {
 	ErrorName() string
 } = DepositReplyValidationError{}
 
+// Validate checks the field values on UserAreaRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *UserAreaRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UserAreaRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UserAreaRequestMultiError, or nil if none found.
+func (m *UserAreaRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UserAreaRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for LocationId
+
+	if len(errors) > 0 {
+		return UserAreaRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// UserAreaRequestMultiError is an error wrapping multiple validation errors
+// returned by UserAreaRequest.ValidateAll() if the designated constraints
+// aren't met.
+type UserAreaRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UserAreaRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UserAreaRequestMultiError) AllErrors() []error { return m }
+
+// UserAreaRequestValidationError is the validation error returned by
+// UserAreaRequest.Validate if the designated constraints aren't met.
+type UserAreaRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UserAreaRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UserAreaRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UserAreaRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UserAreaRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UserAreaRequestValidationError) ErrorName() string { return "UserAreaRequestValidationError" }
+
+// Error satisfies the builtin error interface
+func (e UserAreaRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUserAreaRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UserAreaRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UserAreaRequestValidationError{}
+
+// Validate checks the field values on UserAreaReply with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *UserAreaReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UserAreaReply with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in UserAreaReplyMultiError, or
+// nil if none found.
+func (m *UserAreaReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UserAreaReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetArea() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, UserAreaReplyValidationError{
+						field:  fmt.Sprintf("Area[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, UserAreaReplyValidationError{
+						field:  fmt.Sprintf("Area[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return UserAreaReplyValidationError{
+					field:  fmt.Sprintf("Area[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return UserAreaReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// UserAreaReplyMultiError is an error wrapping multiple validation errors
+// returned by UserAreaReply.ValidateAll() if the designated constraints
+// aren't met.
+type UserAreaReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UserAreaReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UserAreaReplyMultiError) AllErrors() []error { return m }
+
+// UserAreaReplyValidationError is the validation error returned by
+// UserAreaReply.Validate if the designated constraints aren't met.
+type UserAreaReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UserAreaReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UserAreaReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UserAreaReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UserAreaReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UserAreaReplyValidationError) ErrorName() string { return "UserAreaReplyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e UserAreaReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUserAreaReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UserAreaReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UserAreaReplyValidationError{}
+
 // Validate checks the field values on UserInfoRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.
@@ -8093,6 +8329,112 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RecommendUpdateRequest_SendBodyValidationError{}
+
+// Validate checks the field values on UserAreaReply_List with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UserAreaReply_List) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UserAreaReply_List with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UserAreaReply_ListMultiError, or nil if none found.
+func (m *UserAreaReply_List) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UserAreaReply_List) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Address
+
+	// no validation rules for LocationId
+
+	if len(errors) > 0 {
+		return UserAreaReply_ListMultiError(errors)
+	}
+
+	return nil
+}
+
+// UserAreaReply_ListMultiError is an error wrapping multiple validation errors
+// returned by UserAreaReply_List.ValidateAll() if the designated constraints
+// aren't met.
+type UserAreaReply_ListMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UserAreaReply_ListMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UserAreaReply_ListMultiError) AllErrors() []error { return m }
+
+// UserAreaReply_ListValidationError is the validation error returned by
+// UserAreaReply_List.Validate if the designated constraints aren't met.
+type UserAreaReply_ListValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UserAreaReply_ListValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UserAreaReply_ListValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UserAreaReply_ListValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UserAreaReply_ListValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UserAreaReply_ListValidationError) ErrorName() string {
+	return "UserAreaReply_ListValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UserAreaReply_ListValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUserAreaReply_List.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UserAreaReply_ListValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UserAreaReply_ListValidationError{}
 
 // Validate checks the field values on UserInfoReply_List with the rules
 // defined in the proto definition for this message. If any rules are

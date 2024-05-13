@@ -22,6 +22,7 @@ const (
 	App_EthAuthorize_FullMethodName        = "/api.App/EthAuthorize"
 	App_RecommendUpdate_FullMethodName     = "/api.App/RecommendUpdate"
 	App_UserInfo_FullMethodName            = "/api.App/UserInfo"
+	App_UserArea_FullMethodName            = "/api.App/UserArea"
 	App_RewardList_FullMethodName          = "/api.App/RewardList"
 	App_RecommendRewardList_FullMethodName = "/api.App/RecommendRewardList"
 	App_FeeRewardList_FullMethodName       = "/api.App/FeeRewardList"
@@ -51,6 +52,7 @@ type AppClient interface {
 	EthAuthorize(ctx context.Context, in *EthAuthorizeRequest, opts ...grpc.CallOption) (*EthAuthorizeReply, error)
 	RecommendUpdate(ctx context.Context, in *RecommendUpdateRequest, opts ...grpc.CallOption) (*RecommendUpdateReply, error)
 	UserInfo(ctx context.Context, in *UserInfoRequest, opts ...grpc.CallOption) (*UserInfoReply, error)
+	UserArea(ctx context.Context, in *UserAreaRequest, opts ...grpc.CallOption) (*UserAreaReply, error)
 	RewardList(ctx context.Context, in *RewardListRequest, opts ...grpc.CallOption) (*RewardListReply, error)
 	RecommendRewardList(ctx context.Context, in *RecommendRewardListRequest, opts ...grpc.CallOption) (*RecommendRewardListReply, error)
 	FeeRewardList(ctx context.Context, in *FeeRewardListRequest, opts ...grpc.CallOption) (*FeeRewardListReply, error)
@@ -125,6 +127,15 @@ func (c *appClient) RecommendUpdate(ctx context.Context, in *RecommendUpdateRequ
 func (c *appClient) UserInfo(ctx context.Context, in *UserInfoRequest, opts ...grpc.CallOption) (*UserInfoReply, error) {
 	out := new(UserInfoReply)
 	err := c.cc.Invoke(ctx, App_UserInfo_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appClient) UserArea(ctx context.Context, in *UserAreaRequest, opts ...grpc.CallOption) (*UserAreaReply, error) {
+	out := new(UserAreaReply)
+	err := c.cc.Invoke(ctx, App_UserArea_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -318,6 +329,7 @@ type AppServer interface {
 	EthAuthorize(context.Context, *EthAuthorizeRequest) (*EthAuthorizeReply, error)
 	RecommendUpdate(context.Context, *RecommendUpdateRequest) (*RecommendUpdateReply, error)
 	UserInfo(context.Context, *UserInfoRequest) (*UserInfoReply, error)
+	UserArea(context.Context, *UserAreaRequest) (*UserAreaReply, error)
 	RewardList(context.Context, *RewardListRequest) (*RewardListReply, error)
 	RecommendRewardList(context.Context, *RecommendRewardListRequest) (*RecommendRewardListReply, error)
 	FeeRewardList(context.Context, *FeeRewardListRequest) (*FeeRewardListReply, error)
@@ -376,6 +388,9 @@ func (UnimplementedAppServer) RecommendUpdate(context.Context, *RecommendUpdateR
 }
 func (UnimplementedAppServer) UserInfo(context.Context, *UserInfoRequest) (*UserInfoReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserInfo not implemented")
+}
+func (UnimplementedAppServer) UserArea(context.Context, *UserAreaRequest) (*UserAreaReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserArea not implemented")
 }
 func (UnimplementedAppServer) RewardList(context.Context, *RewardListRequest) (*RewardListReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RewardList not implemented")
@@ -500,6 +515,24 @@ func _App_UserInfo_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AppServer).UserInfo(ctx, req.(*UserInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _App_UserArea_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserAreaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).UserArea(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: App_UserArea_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).UserArea(ctx, req.(*UserAreaRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -882,6 +915,10 @@ var App_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UserInfo",
 			Handler:    _App_UserInfo_Handler,
+		},
+		{
+			MethodName: "UserArea",
+			Handler:    _App_UserArea_Handler,
 		},
 		{
 			MethodName: "RewardList",

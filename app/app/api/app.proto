@@ -30,6 +30,12 @@ service App {
 		};
 	};
 
+	rpc UserArea (UserAreaRequest) returns (UserAreaReply) {
+		option (google.api.http) = {
+			get: "/api/app_server/user_area"
+		};
+	};
+
 	rpc RewardList (RewardListRequest) returns (RewardListReply) {
 		option (google.api.http) = {
 			get: "/api/app_server/reward_list"
@@ -249,10 +255,22 @@ message DepositRequest {
 message DepositReply {
 }
 
+message UserAreaRequest {
+	int64 locationId = 1;
+}
+
+message UserAreaReply {
+	repeated List area = 52; // 购买记录
+	message List {
+		string address = 2; // 收益
+		int64 locationId = 3;
+	}
+}
+
+
 message UserInfoRequest {
 
 }
-
 
 message UserInfoReply {
 	double biwPrice = 1; // biw价格

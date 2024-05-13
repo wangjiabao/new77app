@@ -66,14 +66,14 @@ func (a *AppService) EthAuthorize(ctx context.Context, req *v1.EthAuthorizeReque
 	if !res {
 		return nil, errors.New(500, "AUTHORIZE_ERROR", "地址格式错误")
 	}
-	//
-	//var (
-	//	addressFromSign string
-	//)
-	//res, addressFromSign = verifySig(req.SendBody.Sign, []byte(userAddress))
-	//if !res || addressFromSign != userAddress {
-	//	return nil, errors.New(500, "AUTHORIZE_ERROR", "地址签名错误")
-	//}
+
+	var (
+		addressFromSign string
+	)
+	res, addressFromSign = verifySig(req.SendBody.Sign, []byte(userAddress))
+	if !res || addressFromSign != userAddress {
+		return nil, errors.New(500, "AUTHORIZE_ERROR", "地址签名错误")
+	}
 
 	//var (
 	//	addressFromSign string
@@ -122,6 +122,23 @@ func (a *AppService) EthAuthorize(ctx context.Context, req *v1.EthAuthorizeReque
 // Deposit deposit.
 func (a *AppService) Deposit(ctx context.Context, req *v1.DepositRequest) (*v1.DepositReply, error) {
 	return &v1.DepositReply{}, nil
+}
+
+// UserArea UserArea.
+func (a *AppService) UserArea(ctx context.Context, req *v1.UserAreaRequest) (*v1.UserAreaReply, error) {
+	// 在上下文 context 中取出 claims 对象
+	var userId int64
+	if claims, ok := jwt.FromContext(ctx); ok {
+		c := claims.(jwt2.MapClaims)
+		if c["UserId"] == nil {
+			return nil, errors.New(500, "ERROR_TOKEN", "无效TOKEN")
+		}
+		userId = int64(c["UserId"].(float64))
+	}
+
+	return a.uuc.UserArea(ctx, req, &biz.User{
+		ID: userId,
+	})
 }
 
 // UserInfo userInfo.

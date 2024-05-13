@@ -463,6 +463,29 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /api/app_server/user_area:
+        get:
+            tags:
+                - App
+            operationId: App_UserArea
+            parameters:
+                - name: locationId
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserAreaReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/app_server/user_info:
         get:
             tags:
@@ -762,6 +785,20 @@ components:
                 address:
                     type: string
                 password:
+                    type: string
+        UserAreaReply:
+            type: object
+            properties:
+                area:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/UserAreaReply_List'
+        UserAreaReply_List:
+            type: object
+            properties:
+                address:
+                    type: string
+                locationId:
                     type: string
         UserInfoReply:
             type: object

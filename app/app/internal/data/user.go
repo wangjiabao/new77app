@@ -232,7 +232,7 @@ func (u *UserRepo) GetUserByAddress(ctx context.Context, address string) (*biz.U
 	var user User
 	if err := u.data.db.Where(&User{Address: address}).Table("user").First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.NotFound("USER_NOT_FOUND", "user not found")
+			return nil, nil
 		}
 
 		return nil, errors.New(500, "USER ERROR", err.Error())

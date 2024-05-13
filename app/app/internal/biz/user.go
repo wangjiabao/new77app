@@ -839,13 +839,13 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
 					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "ISPS",
-					Type:      7,
+					Type:      5,
 				})
 			} else if "exchange_2" == vUserReward.Reason {
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
 					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "ISPS",
-					Type:      7,
+					Type:      5,
 				})
 			} else if "withdraw" == vUserReward.Reason {
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
@@ -857,7 +857,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
 					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)),
-					Type:      5,
+					Type:      7,
 				})
 			} else {
 				continue
@@ -993,6 +993,61 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		ConfigThree:           configThree,
 		ConfigTwo:             configTwo,
 	}, nil
+}
+func (uuc *UserUseCase) UserArea(ctx context.Context, req *v1.UserAreaRequest, user *User) (*v1.UserAreaReply, error) {
+	var (
+		err             error
+		locationId      = req.LocationId
+		Locations       []*LocationNew
+		LocationRunning *LocationNew
+	)
+
+	res := make([]*v1.UserAreaReply_List, 0)
+	if 0 >= locationId {
+		Locations, err = uuc.locationRepo.GetLocationsByUserId(ctx, user.ID)
+		if nil != err {
+			return nil, err
+		}
+		for _, vLocations := range Locations {
+			if "running" == vLocations.Status {
+				LocationRunning = vLocations
+				break
+			}
+		}
+
+		if nil == LocationRunning {
+			return &v1.UserAreaReply{Area: res}, nil
+		}
+
+		locationId = LocationRunning.ID
+	}
+
+	var (
+		myLowLocations []*LocationNew
+	)
+
+	myLowLocations, err = uuc.locationRepo.GetLocationsByTop(ctx, locationId)
+	if nil != err {
+		return nil, err
+	}
+
+	for _, vMyLowLocations := range myLowLocations {
+		var (
+			userLow *User
+		)
+
+		userLow, err = uuc.repo.GetUserById(ctx, vMyLowLocations.UserId)
+		if nil != err {
+			continue
+		}
+
+		res = append(res, &v1.UserAreaReply_List{
+			Address:    userLow.Address,
+			LocationId: vMyLowLocations.ID,
+		})
+	}
+
+	return &v1.UserAreaReply{Area: res}, nil
 }
 
 func (uuc *UserUseCase) UserInfoOld(ctx context.Context, user *User) (*v1.UserInfoReply, error) {
