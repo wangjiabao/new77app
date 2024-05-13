@@ -281,11 +281,13 @@ message UserInfoReply {
 	int64 buyNumFour = 6; // 可购买数量3
 	int64 buyNumFive = 7; // 可购买数量4
 	int64 buyNumOne = 8; // 可购买数量5
+	int64 buyNumSix = 90;
 	int64 sellNumOne = 9; // 卖出数量1
 	int64 sellNumTwo = 10; // 卖出数量2
 	int64 sellNumThree = 11; // 卖出数量3
 	int64 sellNumFour = 12; // 卖出数量4
 	int64 sellNumFive = 13; // 卖出数量5
+	int64 sellNumSix = 91; // 卖出数量5
 	double daily_rate = 14; // 每日静态收益
 	double biwDailySpeed = 15; // biw产出速率
 	string currentAmountBiw = 16; // 待领取biw收益

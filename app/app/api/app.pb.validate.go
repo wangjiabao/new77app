@@ -1078,6 +1078,8 @@ func (m *UserInfoReply) validate(all bool) error {
 
 	// no validation rules for BuyNumOne
 
+	// no validation rules for BuyNumSix
+
 	// no validation rules for SellNumOne
 
 	// no validation rules for SellNumTwo
@@ -1087,6 +1089,8 @@ func (m *UserInfoReply) validate(all bool) error {
 	// no validation rules for SellNumFour
 
 	// no validation rules for SellNumFive
+
+	// no validation rules for SellNumSix
 
 	// no validation rules for DailyRate
 

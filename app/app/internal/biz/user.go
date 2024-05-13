@@ -476,6 +476,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		buyThree              int64
 		buyFour               int64
 		buyFive               int64
+		buySix                int64
 		areaMin               int64
 		areaMax               int64
 		areaAll               int64
@@ -510,7 +511,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		"buy_two",
 		"buy_three",
 		"buy_four",
-		"buy_five",
+		"buy_five", "buy_six",
 		"total",
 		"one", "two", "three", "four",
 		"area_one", "area_two", "area_three", "area_four", "area_five",
@@ -541,6 +542,9 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 			}
 			if "buy_five" == vConfig.KeyName {
 				buyFive, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "buy_six" == vConfig.KeyName {
+				buySix, _ = strconv.ParseInt(vConfig.Value, 10, 64)
 			}
 			if "total" == vConfig.KeyName {
 				total, _ = strconv.ParseInt(vConfig.Value, 10, 64)
@@ -598,6 +602,8 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	//}
 
 	// 系统
+
+	count6 := uuc.locationRepo.GetAllLocationsCount(ctx, 10000000)
 	count1 := uuc.locationRepo.GetAllLocationsCount(ctx, 30000000)
 	count2 := uuc.locationRepo.GetAllLocationsCount(ctx, 100000000)
 	count3 := uuc.locationRepo.GetAllLocationsCount(ctx, 300000000)
@@ -954,11 +960,13 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		BuyNumFour:            count4,
 		BuyNumFive:            count5,
 		BuyNumOne:             count1,
+		BuyNumSix:             count6,
 		SellNumOne:            buyOne - count1,
 		SellNumTwo:            buyTwo - count2,
 		SellNumThree:          buyThree - count3,
 		SellNumFour:           buyFour - count4,
 		SellNumFive:           buyFive - count5,
+		SellNumSix:            buySix - count6,
 		DailyRate:             0,
 		BiwDailySpeed:         0,
 		CurrentAmountBiw:      currentAmountBiw,

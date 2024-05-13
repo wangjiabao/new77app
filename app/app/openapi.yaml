@@ -820,6 +820,8 @@ components:
                     type: string
                 buyNumOne:
                     type: string
+                buyNumSix:
+                    type: string
                 sellNumOne:
                     type: string
                 sellNumTwo:
@@ -829,6 +831,8 @@ components:
                 sellNumFour:
                     type: string
                 sellNumFive:
+                    type: string
+                sellNumSix:
                     type: string
                 dailyRate:
                     type: number
