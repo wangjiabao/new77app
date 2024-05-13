@@ -1041,7 +1041,8 @@ func (uuc *UserUseCase) UserArea(ctx context.Context, req *v1.UserAreaRequest, u
 
 	for _, vMyLowLocations := range myLowLocations {
 		var (
-			userLow *User
+			userLow           *User
+			tmpMyLowLocations []*LocationNew
 		)
 
 		userLow, err = uuc.repo.GetUserById(ctx, vMyLowLocations.UserId)
@@ -1049,9 +1050,15 @@ func (uuc *UserUseCase) UserArea(ctx context.Context, req *v1.UserAreaRequest, u
 			continue
 		}
 
+		tmpMyLowLocations, err = uuc.locationRepo.GetLocationsByTop(ctx, vMyLowLocations.ID)
+		if nil != err {
+			return nil, err
+		}
+
 		res = append(res, &v1.UserAreaReply_List{
 			Address:    userLow.Address,
 			LocationId: vMyLowLocations.ID,
+			CountLow:   int64(len(tmpMyLowLocations)),
 		})
 	}
 

@@ -800,6 +800,8 @@ components:
                     type: string
                 locationId:
                     type: string
+                countLow:
+                    type: string
         UserInfoReply:
             type: object
             properties:

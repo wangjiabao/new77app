@@ -8360,6 +8360,8 @@ func (m *UserAreaReply_List) validate(all bool) error {
 
 	// no validation rules for LocationId
 
+	// no validation rules for CountLow
+
 	if len(errors) > 0 {
 		return UserAreaReply_ListMultiError(errors)
 	}

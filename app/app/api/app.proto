@@ -264,6 +264,7 @@ message UserAreaReply {
 	message List {
 		string address = 2; // 收益
 		int64 locationId = 3;
+		int64 countLow = 4;
 	}
 }
 
