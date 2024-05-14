@@ -714,7 +714,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 			}
 
 			if v.LastLevel > lastLevel {
-				lastLevel = tmpLastLevel
+				lastLevel = v.LastLevel
 			}
 		}
 	}
