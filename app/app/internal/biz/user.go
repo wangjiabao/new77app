@@ -1685,16 +1685,44 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 	//	}
 	//}
 
+	// 配置
+	var (
+		configs     []*Config
+		withdrawMax int64
+		withdrawMin int64
+	)
+	configs, err = uuc.configRepo.GetConfigByKeys(ctx,
+		"withdraw_amount_max",
+		"withdraw_amount_min",
+	)
+	if nil != configs {
+		for _, vConfig := range configs {
+			if "withdraw_amount_max" == vConfig.KeyName {
+				withdrawMax, _ = strconv.ParseInt(vConfig.Value+"00000", 10, 64)
+			}
+
+			if "withdraw_amount_min" == vConfig.KeyName {
+				withdrawMin, _ = strconv.ParseInt(vConfig.Value+"00000", 10, 64)
+			}
+		}
+	}
+
 	if "usdt" == req.SendBody.Type {
 		if userBalance.BalanceUsdt < amount {
 			return &v1.WithdrawReply{
-				Status: "fail",
+				Status: "fail balance",
 			}, nil
 		}
 
-		if 1000000 > amount {
+		if withdrawMax < amount {
 			return &v1.WithdrawReply{
-				Status: "fail",
+				Status: "fail max",
+			}, nil
+		}
+
+		if withdrawMin > amount {
+			return &v1.WithdrawReply{
+				Status: "fail min",
 			}, nil
 		}
 	}
