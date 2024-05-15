@@ -360,6 +360,8 @@ message UserInfoReply {
 	string configThree = 47;
 	string configFour = 48;
 	string status = 49;
+	int64 withdrawMin = 54;
+	int64 buyLimit = 55;
 }
 
 message UserInfo1Reply {

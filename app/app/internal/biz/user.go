@@ -129,6 +129,7 @@ type LocationNew struct {
 	CurrentMaxNew     int64
 	Term              int64
 	Usdt              int64
+	Biw               int64
 	Total             int64
 	TotalTwo          int64
 	TotalThree        int64
@@ -491,6 +492,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		locationUsdt          string
 		locationCurrent       string
 		locationCurrentMaxSub string
+		locationBiw           int64
 		total                 int64
 		one                   int64
 		two                   int64
@@ -503,11 +505,12 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		areaThree             int64
 		areaFour              int64
 		areaFive              int64
-		configOne             string
-		configTwo             string
 		configThree           string
 		configFour            string
 		status                = "stop"
+		totalYesReward        int64
+		buyLimit              int64
+		withdrawMin           int64
 	)
 
 	// 配置
@@ -523,10 +526,16 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		"total",
 		"one", "two", "three", "four",
 		"area_one", "area_two", "area_three", "area_four", "area_five",
-		"config_one", "config_two", "config_three", "config_four",
+		"config_one", "config_two", "config_three", "config_four", "withdraw_amount_min", "buy_limit",
 	)
 	if nil != configs {
 		for _, vConfig := range configs {
+			if "withdraw_amount_min" == vConfig.KeyName {
+				withdrawMin, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "buy_limit" == vConfig.KeyName {
+				buyLimit, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
 			if "b_price" == vConfig.KeyName {
 				bPrice, _ = strconv.ParseInt(vConfig.Value, 10, 64)
 			}
@@ -584,12 +593,6 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 			if "area_five" == vConfig.KeyName {
 				areaFive, _ = strconv.ParseInt(vConfig.Value, 10, 64)
 			}
-			if "config_one" == vConfig.KeyName {
-				configOne = vConfig.Value
-			}
-			if "config_two" == vConfig.KeyName {
-				configTwo = vConfig.Value
-			}
 			if "config_three" == vConfig.KeyName {
 				configThree = vConfig.Value
 			}
@@ -633,6 +636,8 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 			if v.Current <= v.CurrentMax {
 				tmp = v.CurrentMax - v.Current
 			}
+
+			locationBiw += v.Biw
 
 			if "running" == v.Status {
 				status = "running"
@@ -816,6 +821,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 			CreateAt: v.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
 		})
 	}
+	startDate := time.Now().AddDate(0, 0, -1)
 
 	// 分红
 	var (
@@ -826,18 +832,27 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	if nil != userRewards {
 		for _, vUserReward := range userRewards {
 			if "location" == vUserReward.Reason {
+				if vUserReward.CreatedAt.After(startDate) {
+					totalYesReward += vUserReward.Amount
+				}
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
 					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "ISPS",
 					Type:      1,
 				})
 			} else if "area" == vUserReward.Reason {
+				if vUserReward.CreatedAt.After(startDate) {
+					totalYesReward += vUserReward.Amount
+				}
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
 					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "ISPS",
 					Type:      4,
 				})
 			} else if "recommend" == vUserReward.Reason {
+				if vUserReward.CreatedAt.After(startDate) {
+					totalYesReward += vUserReward.Amount
+				}
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
 					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "ISPS",
@@ -1005,9 +1020,11 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		ListRecommend:         myRecommendList,
 		LastLevel:             lastLevel,
 		ConfigFour:            configFour,
-		ConfigOne:             configOne,
+		ConfigOne:             fmt.Sprintf("%.2f", float64(locationBiw)/float64(100000)),
 		ConfigThree:           configThree,
-		ConfigTwo:             configTwo,
+		ConfigTwo:             fmt.Sprintf("%.2f", float64(totalYesReward)/float64(100000)),
+		WithdrawMin:           withdrawMin,
+		BuyLimit:              buyLimit,
 	}, nil
 }
 func (uuc *UserUseCase) UserArea(ctx context.Context, req *v1.UserAreaRequest, user *User) (*v1.UserAreaReply, error) {
