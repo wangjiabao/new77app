@@ -416,12 +416,17 @@ func (uuc *UserUseCase) UpdateUserRecommend(ctx context.Context, u *User, req *v
 				return nil, err
 			}
 		}
+
+		if nil == myRecommendUser {
+			return &v1.RecommendUpdateReply{InviteUserAddress: ""}, nil
+		}
+
 		if myRecommendUser.ID == userId {
-			return &v1.RecommendUpdateReply{InviteUserAddress: myRecommendUser.Address}, err
+			return &v1.RecommendUpdateReply{InviteUserAddress: myRecommendUser.Address}, nil
 		}
 
 		if u.ID == userId {
-			return &v1.RecommendUpdateReply{InviteUserAddress: myRecommendUser.Address}, err
+			return &v1.RecommendUpdateReply{InviteUserAddress: myRecommendUser.Address}, nil
 		}
 
 		// 我的占位信息
