@@ -1080,8 +1080,13 @@ func (uuc *UserUseCase) UserArea(ctx context.Context, req *v1.UserAreaRequest, u
 			return nil, err
 		}
 
+		var address1 string
+		if 20 <= len(userLow.Address) {
+			address1 = userLow.Address[:6] + "..." + userLow.Address[len(userLow.Address)-4:]
+		}
+
 		res = append(res, &v1.UserAreaReply_List{
-			Address:    userLow.Address,
+			Address:    address1,
 			LocationId: vMyLowLocations.ID,
 			CountLow:   int64(len(tmpMyLowLocations)),
 		})
