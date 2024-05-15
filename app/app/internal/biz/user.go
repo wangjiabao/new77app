@@ -1543,9 +1543,7 @@ func (uuc *UserUseCase) Exchange(ctx context.Context, req *v1.ExchangeRequest, u
 	amount, _ := strconv.ParseInt(strconv.FormatFloat(amountFloat, 'f', -1, 64), 10, 64)
 
 	if userBalance.BalanceDhb < amount {
-		return &v1.ExchangeReply{
-			Status: "fail",
-		}, nil
+		amount = userBalance.BalanceDhb
 	}
 
 	if 100000 > amount {
