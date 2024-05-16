@@ -974,7 +974,12 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	fourList := make([]*v1.UserInfoReply_ListFour, 0)
 
 	// 获取前四项
-	topFour := keyValuePairs[:4]
+	var topFour []KeyValuePair
+	if 4 <= len(keyValuePairs) {
+		topFour = keyValuePairs[:4]
+	} else {
+		topFour = keyValuePairs[:len(keyValuePairs)]
+	}
 	for k, vTopFour := range topFour {
 		var (
 			fourUser *User
