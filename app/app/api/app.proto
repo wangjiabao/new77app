@@ -321,7 +321,7 @@ message UserInfoReply {
 	string fourRewardPoolYes = 24; // 每日前四名奖励池沉淀数量
 	repeated ListFour four = 50; // 每日前四名
 	message ListFour {
-		int64 amount = 2; // 直推金额
+		string amount = 2; // 直推金额
 		string reward = 3; // 奖励
 		string location = 4;
 	}

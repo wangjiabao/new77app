@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -202,6 +203,7 @@ type UserBalanceRepo interface {
 	DepositDhb(ctx context.Context, userId int64, amount int64) (int64, error)
 	GetUserBalance(ctx context.Context, userId int64) (*UserBalance, error)
 	GetUserRewardByUserId(ctx context.Context, userId int64) ([]*Reward, error)
+	GetLocationsToday(ctx context.Context) ([]*LocationNew, error)
 	GetUserRewardByUserIds(ctx context.Context, userIds ...int64) (map[int64]*UserSortRecommendReward, error)
 	GetUserRewards(ctx context.Context, b *Pagination, userId int64) ([]*Reward, error, int64)
 	GetUserRewardsLastMonthFee(ctx context.Context) ([]*Reward, error)
@@ -896,18 +898,66 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 
 	// 全球
 	var (
-		day               = -1
-		userLocationsYes  []*LocationNew
-		userLocationsBef  []*LocationNew
-		rewardLocationYes int64
-		totalRewardYes    int64
-		rewardLocationBef int64
-		totalRewardBef    int64
+		day                    = -1
+		userLocationsYes       []*LocationNew
+		userLocationsBef       []*LocationNew
+		rewardLocationYes      int64
+		totalRewardYes         int64
+		rewardLocationBef      int64
+		totalRewardBef         int64
+		fourUserRecommendTotal map[int64]int64
 	)
+
+	fourUserRecommendTotal = make(map[int64]int64, 0)
 	userLocationsYes, err = uuc.locationRepo.GetLocationDailyYesterday(ctx, day)
 	for _, userLocationYes := range userLocationsYes {
 		rewardLocationYes += userLocationYes.Usdt
+
+		// 获取直推
+
+		var (
+			fourUserRecommend         *UserRecommend
+			myFourUserRecommendUserId int64
+			//myFourRecommendUser *User
+		)
+		fourUserRecommend, err = uuc.urRepo.GetUserRecommendByUserId(ctx, myUser.ID)
+		if nil == fourUserRecommend {
+			continue
+		}
+
+		if "" != fourUserRecommend.RecommendCode {
+			tmpFourRecommendUserIds := strings.Split(fourUserRecommend.RecommendCode, "D")
+			if 2 <= len(tmpFourRecommendUserIds) {
+				myFourUserRecommendUserId, _ = strconv.ParseInt(tmpFourRecommendUserIds[len(tmpFourRecommendUserIds)-1], 10, 64) // 最后一位是直推人
+			}
+			//myFourRecommendUser, err = uuc.repo.GetUserById(ctx, myFourUserRecommendUserId)
+			//if nil != err {
+			//	return nil, err
+			//}
+
+			if _, ok := fourUserRecommendTotal[myFourUserRecommendUserId]; ok {
+				fourUserRecommendTotal[myFourUserRecommendUserId] += userLocationYes.Usdt
+			} else {
+				fourUserRecommendTotal[myFourUserRecommendUserId] = userLocationYes.Usdt
+			}
+		}
 	}
+
+	// 前四名
+	type KeyValuePair struct {
+		Key   int64
+		Value int64
+	}
+	var keyValuePairs []KeyValuePair
+	for key, value := range fourUserRecommendTotal {
+		keyValuePairs = append(keyValuePairs, KeyValuePair{key, value})
+	}
+
+	// 按值排序切片
+	sort.Slice(keyValuePairs, func(i, j int) bool {
+		return keyValuePairs[i].Value > keyValuePairs[j].Value
+	})
+
 	userLocationsBef, err = uuc.locationRepo.GetLocationDailyYesterday(ctx, day-1)
 	for _, userLocationBef := range userLocationsBef {
 		rewardLocationBef += userLocationBef.Usdt
@@ -921,24 +971,15 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 
 	totalReward := rewardLocationYes/100/100*70*total + rewardLocationBef/100/100*30*total
 
-	var (
-		userRecommendsFour []*UserRecommend
-	)
 	fourList := make([]*v1.UserInfoReply_ListFour, 0)
-	userRecommendsFour, err = uuc.urRepo.GetUserRecommendsFour(ctx)
-	if nil != err {
-		return nil, err
-	}
 
-	for k, userRecommendFour := range userRecommendsFour {
-		if 0 >= userRecommendFour.Total {
-			continue
-		}
-
+	// 获取前四项
+	topFour := keyValuePairs[:4]
+	for k, vTopFour := range topFour {
 		var (
 			fourUser *User
 		)
-		fourUser, err = uuc.repo.GetUserById(ctx, userRecommendFour.UserId)
+		fourUser, err = uuc.repo.GetUserById(ctx, vTopFour.Key)
 		if nil != err {
 			return nil, err
 		}
@@ -966,7 +1007,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		}
 		fourList = append(fourList, &v1.UserInfoReply_ListFour{
 			Location: address1,
-			Amount:   userRecommendFour.Total,
+			Amount:   fmt.Sprintf("%.2f", float64(vTopFour.Value)/float64(100000)),
 			Reward:   fmt.Sprintf("%.2f", float64(tmpMyRecommendAmount)/float64(100000)),
 		})
 	}
@@ -1737,9 +1778,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 
 	if "usdt" == req.SendBody.Type {
 		if userBalance.BalanceUsdt < amount {
-			return &v1.WithdrawReply{
-				Status: "fail balance",
-			}, nil
+			amount = userBalance.BalanceUsdt
 		}
 
 		if withdrawMax < amount {

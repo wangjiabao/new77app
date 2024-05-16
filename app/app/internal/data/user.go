@@ -2500,6 +2500,56 @@ func (ub UserBalanceRepo) GetUserBalanceRecordUserUsdtTotal(ctx context.Context,
 	return total.Total, nil
 }
 
+// GetLocationsToday .
+func (ub UserBalanceRepo) GetLocationsToday(ctx context.Context) ([]*biz.LocationNew, error) {
+	var locations []*LocationNew
+
+	now := time.Now().UTC()
+	var startDate time.Time
+	var endDate time.Time
+	if 14 <= now.Hour() {
+		startDate = now
+		endDate = now.AddDate(0, 0, 1)
+	} else {
+		startDate = now.AddDate(0, 0, -1)
+		endDate = now
+	}
+	todayStart := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 16, 0, 0, 0, time.UTC)
+	todayEnd := time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 15, 59, 59, 0, time.UTC)
+
+	res := make([]*biz.LocationNew, 0)
+	if err := ub.data.db.Table("location_new").
+		Where("created_at>=?", todayStart).Where("created_at<=?", todayEnd).
+		Order("id desc").Find(&locations).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return res, nil
+		}
+
+		return nil, errors.New(500, "LOCATION ERROR", err.Error())
+	}
+
+	for _, location := range locations {
+		res = append(res, &biz.LocationNew{
+			ID:            location.ID,
+			UserId:        location.UserId,
+			Status:        location.Status,
+			Current:       location.Current,
+			CurrentMax:    location.CurrentMax,
+			CreatedAt:     location.CreatedAt,
+			CurrentMaxNew: location.CurrentMaxNew,
+			Usdt:          location.Usdt,
+			Num:           location.Num,
+			Total:         location.Total,
+			TotalTwo:      location.TotalTwo,
+			TotalThree:    location.TotalThree,
+			Biw:           location.Biw,
+			LastLevel:     location.LastLevel,
+		})
+	}
+
+	return res, nil
+}
+
 // GetUserBalanceRecordUsdtTotalToday .
 func (ub UserBalanceRepo) GetUserBalanceRecordUsdtTotalToday(ctx context.Context) (int64, error) {
 	var total UserBalanceTotal
