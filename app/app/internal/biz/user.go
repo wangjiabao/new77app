@@ -920,7 +920,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 			myFourUserRecommendUserId int64
 			//myFourRecommendUser *User
 		)
-		fourUserRecommend, err = uuc.urRepo.GetUserRecommendByUserId(ctx, myUser.ID)
+		fourUserRecommend, err = uuc.urRepo.GetUserRecommendByUserId(ctx, userLocationYes.UserId)
 		if nil == fourUserRecommend {
 			continue
 		}
