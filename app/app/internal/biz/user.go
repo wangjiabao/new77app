@@ -860,6 +860,15 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "ISPS",
 					Type:      2,
 				})
+			} else if "recommend_location" == vUserReward.Reason {
+				if vUserReward.CreatedAt.After(startDate) {
+					totalYesReward += vUserReward.Amount
+				}
+				listReward = append(listReward, &v1.UserInfoReply_ListReward{
+					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
+					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)),
+					Type:      8,
+				})
 			} else if "four" == vUserReward.Reason {
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
