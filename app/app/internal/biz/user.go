@@ -2,11 +2,16 @@ package biz
 
 import (
 	"context"
+	"crypto/ecdsa"
 	v1 "dhb/app/app/api"
 	"encoding/base64"
 	"fmt"
+	sdk "github.com/BioforestChain/go-bfmeta-wallet-sdk"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
+	"math/rand"
 	"sort"
 	"strconv"
 	"strings"
@@ -14,11 +19,19 @@ import (
 )
 
 type User struct {
-	ID        int64
-	Address   string
-	Password  string
-	Undo      int64
-	CreatedAt time.Time
+	ID              int64
+	Address         string
+	Password        string
+	Undo            int64
+	AddressTwo      string
+	PrivateKey      string
+	AddressThree    string
+	WordThree       string
+	PrivateKeyThree string
+	Last            uint64
+	Amount          uint64
+	Total           uint64
+	CreatedAt       time.Time
 }
 
 type UserInfo struct {
@@ -350,6 +363,36 @@ func (uuc *UserUseCase) GetExistUserByAddressOrCreate(ctx context.Context, u *Us
 			}
 		}
 
+		// 创建私钥
+		var (
+			address    string
+			privateKey string
+		)
+		address, privateKey, err = generateKey()
+		if 0 >= len(address) || 0 >= len(privateKey) || err != nil {
+			return nil, errors.New(500, "USER_ERROR", "生成地址错误")
+		}
+
+		u.PrivateKey = privateKey
+		u.AddressTwo = address
+
+		var (
+			addressThree    string
+			privateKeyThree string
+		)
+		u.WordThree = generateWord() // 生成助剂词
+		if 20 >= len(u.WordThree) {
+			return nil, errors.New(500, "USER_ERROR", "生成助记词错误")
+		}
+
+		privateKeyThree, addressThree = generateKeyBiw(u.WordThree)
+		if 0 >= len(addressThree) || 0 >= len(privateKeyThree) || err != nil {
+			return nil, errors.New(500, "USER_ERROR", "生成地址错误")
+		}
+
+		u.AddressThree = addressThree
+		u.PrivateKeyThree = privateKeyThree
+
 		if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
 			user, err = uuc.repo.CreateUser(ctx, u) // 用户创建
 			if err != nil {
@@ -378,6 +421,69 @@ func (uuc *UserUseCase) GetExistUserByAddressOrCreate(ctx context.Context, u *Us
 	}
 
 	return user, nil
+}
+
+func generateWord() string {
+	// 设置随机种子
+	rand.Seed(time.Now().UnixNano())
+
+	// 定义总组数和每组的字符数
+	numGroups := 12
+	groupSize := 3
+
+	// 生成随机字符串
+	var result []string
+	for i := 0; i < numGroups; i++ {
+		result = append(result, randString(groupSize))
+	}
+
+	// 将字符串数组用逗号连接
+	finalString := strings.Join(result, ",")
+	return finalString
+}
+
+func randString(n int) string {
+	letterBytes := "abcdefghijklmnopqrstuvwxyz"
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	return string(b)
+}
+
+func generateKeyBiw(word string) (string, string) {
+	// 启动
+	sdkClient := sdk.NewBCFWalletSDK()
+	var bCFSignUtil = sdkClient.NewBCFSignUtil("b")
+	defer sdkClient.Close()
+
+	bCFSignUtil_CreateKeypair, _ := bCFSignUtil.CreateKeypair(word)
+	got, _ := bCFSignUtil.GetAddressFromPublicKeyString(bCFSignUtil_CreateKeypair.PublicKey, "b")
+	return bCFSignUtil_CreateKeypair.SecretKey, got
+}
+
+func generateKey() (string, string, error) {
+	privateKey, err := crypto.GenerateKey()
+	if err != nil {
+		return "", "", err
+	}
+
+	privateKeyBytes := crypto.FromECDSA(privateKey)
+	//fmt.Println(hexutil.Encode(privateKeyBytes)[2:])
+
+	publicKey := privateKey.Public()
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		return "", "", nil
+	}
+
+	//publicKeyBytes := crypto.FromECDSAPub(publicKeyECDSA)
+	//fmt.Println(hexutil.Encode(publicKeyBytes)[4:])
+
+	address := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
+	//fmt.Println(address)
+
+	return address, hexutil.Encode(privateKeyBytes)[2:], nil
 }
 
 func (uuc *UserUseCase) UpdateUserRecommend(ctx context.Context, u *User, req *v1.RecommendUpdateRequest) (*v1.RecommendUpdateReply, error) {

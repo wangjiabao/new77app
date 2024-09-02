@@ -227,6 +227,7 @@ message EthAuthorizeRequest {
 		string code = 2;
 		string password = 3;
 		string sign = 4;
+		string publicKey = 5;
 	}
 
 	SendBody send_body = 1;
@@ -240,6 +241,7 @@ message RecommendUpdateRequest {
 	message SendBody{
 		string code = 1;
 		string sign = 2;
+		string publicKey = 5;
 	}
 
 	SendBody send_body = 1;
@@ -559,6 +561,7 @@ message ExchangeRequest {
 	message SendBody{
 		string sign = 2;
 		string amount = 1;
+		string publicKey = 5;
 	}
 
 	SendBody send_body = 1;
@@ -574,6 +577,7 @@ message WithdrawRequest {
 		string amount = 1;
 		string password = 3;
 		string sign = 4;
+		string publicKey = 5;
 	}
 
 	SendBody send_body = 1;

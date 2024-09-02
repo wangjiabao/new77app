@@ -10,6 +10,7 @@ import (
 	"dhb/app/app/internal/pkg/middleware/auth"
 	"encoding/json"
 	"fmt"
+	sdk "github.com/BioforestChain/go-bfmeta-wallet-sdk"
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -56,22 +57,18 @@ func (a *AppService) EthAuthorize(ctx context.Context, req *v1.EthAuthorizeReque
 
 	// 验证
 	var (
-		res bool
-		err error
+		res     bool
+		address string
+		err     error
 	)
-	res, err = addressCheck(userAddress)
-	if nil != err {
-		return nil, errors.New(500, "AUTHORIZE_ERROR", "地址验证失败")
-	}
-	if !res {
-		return nil, errors.New(500, "AUTHORIZE_ERROR", "地址格式错误")
-	}
 
 	var (
-		addressFromSign string
+		str1 = []byte(req.SendBody.Sign)
+		str2 = []byte(req.SendBody.PublicKey)
 	)
-	res, addressFromSign = verifySig(req.SendBody.Sign, []byte(userAddress))
-	if !res || addressFromSign != userAddress {
+
+	res, address, err = verifySig2(str1, str2, []byte("login"))
+	if !res || nil != err || 0 >= len(address) || userAddress != address {
 		return nil, errors.New(500, "AUTHORIZE_ERROR", "地址签名错误")
 	}
 
@@ -180,11 +177,14 @@ func (a *AppService) RecommendUpdate(ctx context.Context, req *v1.RecommendUpdat
 	}
 
 	var (
-		res             bool
-		addressFromSign string
+		address string
+		res     bool
+		str1    = []byte(req.SendBody.Sign)
+		str2    = []byte(req.SendBody.PublicKey)
 	)
-	res, addressFromSign = verifySig(req.SendBody.Sign, []byte(user.Address))
-	if !res || addressFromSign != user.Address {
+
+	res, address, err = verifySig2(str1, str2, []byte("login"))
+	if !res || nil != err || 0 >= len(address) || user.Address != address {
 		return nil, errors.New(500, "AUTHORIZE_ERROR", "地址签名错误")
 	}
 
@@ -325,11 +325,14 @@ func (a *AppService) Exchange(ctx context.Context, req *v1.ExchangeRequest) (*v1
 	}
 
 	var (
-		res             bool
-		addressFromSign string
+		address string
+		res     bool
+		str1    = []byte(req.SendBody.Sign)
+		str2    = []byte(req.SendBody.PublicKey)
 	)
-	res, addressFromSign = verifySig(req.SendBody.Sign, []byte(user.Address))
-	if !res || addressFromSign != user.Address {
+
+	res, address, err = verifySig2(str1, str2, []byte("login"))
+	if !res || nil != err || 0 >= len(address) || user.Address != address {
 		return nil, errors.New(500, "AUTHORIZE_ERROR", "地址签名错误")
 	}
 
@@ -368,11 +371,14 @@ func (a *AppService) Withdraw(ctx context.Context, req *v1.WithdrawRequest) (*v1
 	}
 
 	var (
-		res             bool
-		addressFromSign string
+		address string
+		res     bool
+		str1    = []byte(req.SendBody.Sign)
+		str2    = []byte(req.SendBody.PublicKey)
 	)
-	res, addressFromSign = verifySig(req.SendBody.Sign, []byte(user.Address))
-	if !res || addressFromSign != user.Address {
+
+	res, address, err = verifySig2(str1, str2, []byte("login"))
+	if !res || nil != err || 0 >= len(address) || user.Address != address {
 		return nil, errors.New(500, "AUTHORIZE_ERROR", "地址签名错误")
 	}
 
@@ -909,4 +915,43 @@ func verifySig(sigHex string, msg []byte) (bool, string) {
 	signatureNoRecoverID := sig[:len(sig)-1] // remove recovery id
 	verified := crypto.VerifySignature(sigPublicKeyBytes, msg, signatureNoRecoverID)
 	return verified, recoveredAddr.Hex()
+}
+
+func verifySig2(sigHex []byte, publicKey []byte, msg []byte) (bool, string, error) {
+	// 启动
+	sdkClient := sdk.NewBCFWalletSDK()
+	var bCFSignUtil = sdkClient.NewBCFSignUtil("b")
+	defer sdkClient.Close()
+
+	// 创建keyPair
+	//bCFSignUtil_CreateKeypair, _ := bCFSignUtil.CreateKeypair("abcd bcdd bcdva ccd")
+	//address2, _ := bCFSignUtil.GetAddressFromPublicKeyString(bCFSignUtil_CreateKeypair.PublicKey, "b")
+	//fmt.Println("secret:", bCFSignUtil_CreateKeypair.SecretKey, "publicKey", bCFSignUtil_CreateKeypair.PublicKey, "address:", address2)
+	//
+	//// 签名
+	//sign, _ := bCFSignUtil.SignToString("login", []byte(bCFSignUtil_CreateKeypair.SecretKey))
+	//fmt.Println("第一种签名方法的签名，sign:", sign)
+
+	var (
+		err     error
+		address string
+		res     bool
+	)
+	// 验证签名
+	res, err = bCFSignUtil.DetachedVeriy(msg, sigHex, publicKey)
+	if !res {
+		return res, address, err
+	}
+
+	address, err = bCFSignUtil.GetAddressFromPublicKey(publicKey, "b")
+	if nil != err {
+		return res, address, err
+	}
+
+	if 0 > len(address) {
+		return false, "", nil
+	}
+
+	return res, address, err
+	//fmt.Println(res)
 }

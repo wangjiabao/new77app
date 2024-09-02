@@ -12,12 +12,17 @@ import (
 )
 
 type User struct {
-	ID        int64     `gorm:"primarykey;type:int"`
-	Address   string    `gorm:"type:varchar(100)"`
-	Password  string    `gorm:"type:varchar(100)"`
-	Undo      int64     `gorm:"type:int;not null"`
-	CreatedAt time.Time `gorm:"type:datetime;not null"`
-	UpdatedAt time.Time `gorm:"type:datetime;not null"`
+	ID              int64     `gorm:"primarykey;type:int"`
+	Address         string    `gorm:"type:varchar(100)"`
+	Password        string    `gorm:"type:varchar(100)"`
+	AddressTwo      string    `gorm:"type:varchar(100)"`
+	PrivateKey      string    `gorm:"type:varchar(200)"`
+	AddressThree    string    `gorm:"type:varchar(100)"`
+	PrivateKeyThree string    `gorm:"type:varchar(400)"`
+	WordThree       string    `gorm:"type:varchar(200)"`
+	Undo            int64     `gorm:"type:int;not null"`
+	CreatedAt       time.Time `gorm:"type:datetime;not null"`
+	UpdatedAt       time.Time `gorm:"type:datetime;not null"`
 }
 
 type Trade struct {
@@ -467,6 +472,13 @@ func (u *UserRepo) CreateUser(ctx context.Context, uc *biz.User) (*biz.User, err
 	var user User
 	user.Address = uc.Address
 	user.Password = uc.Password
+
+	user.AddressTwo = uc.AddressTwo
+	user.PrivateKey = uc.PrivateKey
+	user.AddressThree = uc.AddressThree
+	user.PrivateKeyThree = uc.PrivateKeyThree
+	user.WordThree = uc.WordThree
+
 	res := u.data.DB(ctx).Table("user").Create(&user)
 	if res.Error != nil {
 		return nil, errors.New(500, "CREATE_USER_ERROR", "用户创建失败")

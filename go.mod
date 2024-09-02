@@ -1,8 +1,11 @@
 module dhb
 
-go 1.20
+go 1.22
+
+toolchain go1.22.3
 
 require (
+	github.com/BioforestChain/go-bfmeta-wallet-sdk v0.0.0-20240710020840-9bd472a27aba
 	github.com/envoyproxy/protoc-gen-validate v0.1.0
 	github.com/go-kratos/kratos/v2 v2.4.1
 	github.com/go-redis/redis/v8 v8.11.5
