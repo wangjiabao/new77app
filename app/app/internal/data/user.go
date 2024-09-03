@@ -1568,7 +1568,7 @@ func (ub *UserBalanceRepo) GreateWithdraw(ctx context.Context, userId int64, rel
 	reward.UserId = userId
 	reward.Amount = amount
 	reward.AmountB = relAmount
-	reward.Type = "withdraw" // 本次分红的行为类型
+	reward.Type = coinType // 本次分红的行为类型
 	reward.TypeRecordId = withdraw.ID
 	reward.Reason = "withdraw" // 给我分红的理由
 	err = ub.data.DB(ctx).Table("reward").Create(&reward).Error
