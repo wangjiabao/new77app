@@ -30,6 +30,7 @@ type User struct {
 	PrivateKeyThree string
 	Last            uint64
 	Amount          uint64
+	AmountBiw       uint64
 	Total           uint64
 	CreatedAt       time.Time
 }
@@ -945,7 +946,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 				}
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "ISPS",
+					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "BIW",
 					Type:      1,
 				})
 			} else if "area" == vUserReward.Reason {
@@ -954,7 +955,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 				}
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "ISPS",
+					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "BIW",
 					Type:      4,
 				})
 			} else if "recommend" == vUserReward.Reason {
@@ -963,7 +964,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 				}
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "ISPS",
+					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "BIW",
 					Type:      2,
 				})
 			} else if "recommend_location" == vUserReward.Reason {
@@ -984,13 +985,13 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 			} else if "exchange" == vUserReward.Reason {
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "ISPS",
+					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "BIW",
 					Type:      5,
 				})
 			} else if "exchange_2" == vUserReward.Reason {
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "ISPS",
+					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "BIW",
 					Type:      5,
 				})
 			} else if "withdraw" == vUserReward.Reason {
@@ -1136,7 +1137,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		Status:                status,
 		BiwPrice:              float64(bPrice) / float64(bPriceBase),
 		ExchangeRate:          float64(exchangeRate) / 1000,
-		BalanceBiw:            fmt.Sprintf("%.2f", float64(userBalance.BalanceDhb)/float64(100000)) + "ISPS",
+		BalanceBiw:            fmt.Sprintf("%.2f", float64(userBalance.BalanceDhb)/float64(100000)) + "BIW",
 		BalanceUsdt:           fmt.Sprintf("%.2f", float64(userBalance.BalanceUsdt)/float64(100000)),
 		BiwDaily:              "",
 		BuyNumTwo:             count2,
@@ -1161,10 +1162,10 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		InviteUserAddress:     inviteUserAddress,
 		InviteUrl:             encodeString,
 		Count:                 stopCount,
-		LocationReward:        fmt.Sprintf("%.2f", float64(userBalance.LocationTotal)/float64(100000)) + "ISPS",
-		RecommendReward:       fmt.Sprintf("%.2f", float64(userBalance.RecommendTotal)/float64(100000)) + "ISPS",
+		LocationReward:        fmt.Sprintf("%.2f", float64(userBalance.LocationTotal)/float64(100000)) + "BIW",
+		RecommendReward:       fmt.Sprintf("%.2f", float64(userBalance.RecommendTotal)/float64(100000)) + "BIW",
 		FourReward:            fmt.Sprintf("%.2f", float64(userBalance.FourTotal)/float64(100000)),
-		AreaReward:            fmt.Sprintf("%.2f", float64(userBalance.AreaTotal)/float64(100000)) + "ISPS",
+		AreaReward:            fmt.Sprintf("%.2f", float64(userBalance.AreaTotal)/float64(100000)) + "BIW",
 		FourRewardPool:        fmt.Sprintf("%.2f", float64(totalRewardYes)/float64(100000)),
 		FourRewardPoolYes:     fmt.Sprintf("%.2f", float64(totalRewardBef)/float64(100000)),
 		Four:                  fourList,
@@ -1186,6 +1187,10 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		ConfigTwo:             fmt.Sprintf("%.2f", float64(totalYesReward)/float64(100000)),
 		WithdrawMin:           withdrawMin,
 		BuyLimit:              buyLimit,
+		AmountBiw:             myUser.AmountBiw,
+		AmountUsdt:            myUser.Amount,
+		Address:               myUser.AddressTwo,
+		AddressBiw:            myUser.AddressThree,
 	}, nil
 }
 func (uuc *UserUseCase) UserArea(ctx context.Context, req *v1.UserAreaRequest, user *User) (*v1.UserAreaReply, error) {

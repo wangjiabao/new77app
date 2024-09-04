@@ -364,6 +364,10 @@ message UserInfoReply {
 	string status = 49;
 	int64 withdrawMin = 54;
 	int64 buyLimit = 55;
+	string address = 111;
+	string addressBiw = 112;
+	uint64 amountUsdt = 113;
+	uint64 amountBiw  = 114;
 }
 
 message UserInfo1Reply {

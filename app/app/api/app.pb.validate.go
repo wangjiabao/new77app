@@ -1362,6 +1362,14 @@ func (m *UserInfoReply) validate(all bool) error {
 
 	// no validation rules for BuyLimit
 
+	// no validation rules for Address
+
+	// no validation rules for AddressBiw
+
+	// no validation rules for AmountUsdt
+
+	// no validation rules for AmountBiw
+
 	if len(errors) > 0 {
 		return UserInfoReplyMultiError(errors)
 	}

@@ -935,6 +935,14 @@ components:
                     type: string
                 buyLimit:
                     type: string
+                address:
+                    type: string
+                addressBiw:
+                    type: string
+                amountUsdt:
+                    type: string
+                amountBiw:
+                    type: string
         UserInfoReply_List:
             type: object
             properties:
