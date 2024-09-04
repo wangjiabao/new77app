@@ -35,6 +35,235 @@ var (
 	_ = sort.Sort
 )
 
+// Validate checks the field values on BuyRequest with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *BuyRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BuyRequest with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in BuyRequestMultiError, or
+// nil if none found.
+func (m *BuyRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BuyRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetSendBody()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, BuyRequestValidationError{
+					field:  "SendBody",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, BuyRequestValidationError{
+					field:  "SendBody",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSendBody()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return BuyRequestValidationError{
+				field:  "SendBody",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return BuyRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// BuyRequestMultiError is an error wrapping multiple validation errors
+// returned by BuyRequest.ValidateAll() if the designated constraints aren't met.
+type BuyRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BuyRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BuyRequestMultiError) AllErrors() []error { return m }
+
+// BuyRequestValidationError is the validation error returned by
+// BuyRequest.Validate if the designated constraints aren't met.
+type BuyRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BuyRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BuyRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BuyRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BuyRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BuyRequestValidationError) ErrorName() string { return "BuyRequestValidationError" }
+
+// Error satisfies the builtin error interface
+func (e BuyRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBuyRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BuyRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BuyRequestValidationError{}
+
+// Validate checks the field values on BuyReply with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *BuyReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BuyReply with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in BuyReplyMultiError, or nil
+// if none found.
+func (m *BuyReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BuyReply) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Status
+
+	if len(errors) > 0 {
+		return BuyReplyMultiError(errors)
+	}
+
+	return nil
+}
+
+// BuyReplyMultiError is an error wrapping multiple validation errors returned
+// by BuyReply.ValidateAll() if the designated constraints aren't met.
+type BuyReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BuyReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BuyReplyMultiError) AllErrors() []error { return m }
+
+// BuyReplyValidationError is the validation error returned by
+// BuyReply.Validate if the designated constraints aren't met.
+type BuyReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BuyReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BuyReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BuyReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BuyReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BuyReplyValidationError) ErrorName() string { return "BuyReplyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e BuyReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBuyReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BuyReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BuyReplyValidationError{}
+
 // Validate checks the field values on EthAuthorizeRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -8127,6 +8356,116 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = AdminConfigUpdateReplyValidationError{}
+
+// Validate checks the field values on BuyRequest_SendBody with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *BuyRequest_SendBody) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BuyRequest_SendBody with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// BuyRequest_SendBodyMultiError, or nil if none found.
+func (m *BuyRequest_SendBody) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BuyRequest_SendBody) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Amount
+
+	// no validation rules for Type
+
+	// no validation rules for Sign
+
+	// no validation rules for PublicKey
+
+	if len(errors) > 0 {
+		return BuyRequest_SendBodyMultiError(errors)
+	}
+
+	return nil
+}
+
+// BuyRequest_SendBodyMultiError is an error wrapping multiple validation
+// errors returned by BuyRequest_SendBody.ValidateAll() if the designated
+// constraints aren't met.
+type BuyRequest_SendBodyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BuyRequest_SendBodyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BuyRequest_SendBodyMultiError) AllErrors() []error { return m }
+
+// BuyRequest_SendBodyValidationError is the validation error returned by
+// BuyRequest_SendBody.Validate if the designated constraints aren't met.
+type BuyRequest_SendBodyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BuyRequest_SendBodyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BuyRequest_SendBodyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BuyRequest_SendBodyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BuyRequest_SendBodyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BuyRequest_SendBodyValidationError) ErrorName() string {
+	return "BuyRequest_SendBodyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e BuyRequest_SendBodyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBuyRequest_SendBody.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BuyRequest_SendBodyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BuyRequest_SendBodyValidationError{}
 
 // Validate checks the field values on EthAuthorizeRequest_SendBody with the
 // rules defined in the proto definition for this message. If any rules are

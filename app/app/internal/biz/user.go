@@ -139,15 +139,18 @@ type LocationNew struct {
 	Status            string
 	Current           int64
 	CurrentMax        int64
-	StopLocationAgain int64
-	StopCoin          int64
 	CurrentMaxNew     int64
-	Term              int64
+	StopLocationAgain int64
+	OutRate           int64
+	Count             int64
+	StopCoin          int64
+	Top               int64
 	Usdt              int64
-	Biw               int64
 	Total             int64
 	TotalTwo          int64
 	TotalThree        int64
+	Biw               int64
+	TopNum            int64
 	LastLevel         int64
 	StopDate          time.Time
 	CreatedAt         time.Time
@@ -199,6 +202,7 @@ type ConfigRepo interface {
 }
 
 type UserBalanceRepo interface {
+	RecommendLocationRewardBiw(ctx context.Context, userId int64, rewardAmount int64, recommendNum int64, stop string, tmpMaxNew int64, feeRate int64) (int64, error)
 	CreateUserBalance(ctx context.Context, u *User) (*UserBalance, error)
 	CreateUserBalanceLock(ctx context.Context, u *User) (*UserBalance, error)
 	LocationReward(ctx context.Context, userId int64, amount int64, locationId int64, myLocationId int64, locationType string) (int64, error)
@@ -273,6 +277,7 @@ type UserRecommendRepo interface {
 	GetUserAreas(ctx context.Context, userIds []int64) ([]*UserArea, error)
 	CreateUserArea(ctx context.Context, u *User) (bool, error)
 	GetUserArea(ctx context.Context, userId int64) (*UserArea, error)
+	UpdateUserRecommendTotal(ctx context.Context, userId int64, total int64) error
 }
 
 type UserCurrentMonthRecommendRepo interface {
@@ -291,6 +296,8 @@ type UserInfoRepo interface {
 }
 
 type UserRepo interface {
+	InRecordNew(ctx context.Context, userId int64, address string, amount int64, coinType string) error
+	UpdateUserNewTwoNew(ctx context.Context, userId int64, amount uint64, coinType string) error
 	GetUserById(ctx context.Context, Id int64) (*User, error)
 	GetUserByAddresses(ctx context.Context, Addresses ...string) (map[string]*User, error)
 	GetUserByAddress(ctx context.Context, address string) (*User, error)
@@ -1193,6 +1200,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		AddressBiw:            myUser.AddressThree,
 	}, nil
 }
+
 func (uuc *UserUseCase) UserArea(ctx context.Context, req *v1.UserAreaRequest, user *User) (*v1.UserAreaReply, error) {
 	var (
 		err             error
@@ -1713,6 +1721,701 @@ func (uuc *UserUseCase) TradeList(ctx context.Context, user *User) (*v1.TradeLis
 	return res, nil
 }
 
+func (uuc *UserUseCase) Buy(ctx context.Context, req *v1.BuyRequest, user *User) (*v1.BuyReply, error) {
+	var (
+		amount     = req.SendBody.Amount
+		configs    []*Config
+		bPrice     int64
+		bPriceBase int64
+		coinType   string
+		err        error
+	)
+
+	configs, err = uuc.configRepo.GetConfigByKeys(ctx,
+		"b_price",
+		"b_price_base",
+	)
+	if nil != configs {
+		for _, vConfig := range configs {
+			if "b_price" == vConfig.KeyName {
+				bPrice, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+
+			if "b_price_base" == vConfig.KeyName {
+				bPriceBase, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+		}
+	}
+
+	var (
+		tmpValue int64
+		strValue string
+	)
+	if 100 == amount {
+		tmpValue = int64(10000000)
+		strValue = "100000000000000000000"
+	} else if 1000 == amount {
+		tmpValue = int64(100000000)
+		strValue = "1000000000000000000000"
+	} else if 3000 == amount {
+		tmpValue = int64(300000000)
+		strValue = "3000000000000000000000"
+	} else if 5000 == amount {
+		tmpValue = int64(500000000)
+		strValue = "5000000000000000000000"
+	} else if 10000 == amount {
+		tmpValue = int64(1000000000)
+		strValue = "10000000000000000000000"
+	} else {
+		return &v1.BuyReply{
+			Status: "金额错误",
+		}, nil
+	}
+
+	var tmpAmount uint64
+	if 1 == req.SendBody.Type {
+		if amount > user.Amount {
+			return &v1.BuyReply{
+				Status: "余额不足",
+			}, nil
+		}
+		coinType = "USDT"
+		tmpAmount = amount
+	} else if 2 == req.SendBody.Type {
+		amountBiw := amount * uint64(bPriceBase) / uint64(bPrice)
+		if amountBiw > user.AmountBiw {
+			return &v1.BuyReply{
+				Status: "biw余额不足",
+			}, nil
+		}
+		coinType = "DHB"
+		tmpAmount = amountBiw
+	} else {
+		return &v1.BuyReply{
+			Status: "类型错误",
+		}, nil
+	}
+
+	notExistDepositResult := make([]*EthUserRecord, 0)
+	notExistDepositResult = append(notExistDepositResult, &EthUserRecord{ // 两种币的记录
+		UserId:    user.ID,
+		Status:    "success",
+		Type:      "deposit",
+		Amount:    strValue,
+		RelAmount: tmpValue,
+		CoinType:  coinType,
+		Last:      0,
+	})
+
+	_, err = uuc.EthUserRecordHandle(ctx, tmpAmount, coinType, notExistDepositResult...)
+	if nil != err {
+		fmt.Println(err)
+	}
+
+	return &v1.BuyReply{
+		Status: "ok",
+	}, nil
+}
+
+func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, coinType string, ethUserRecord ...*EthUserRecord) (bool, error) {
+
+	var (
+		configs      []*Config
+		buyOne       int64
+		buyTwo       int64
+		buyThree     int64
+		buyFour      int64
+		buyFive      int64
+		buySix       int64
+		areaOne      int64
+		areaTwo      int64
+		areaThree    int64
+		areaFour     int64
+		areaFive     int64
+		recommendOne int64
+		recommendTwo int64
+		bPrice       int64
+		bPriceBase   int64
+		feeRate      int64
+		//recommendRate1 int64
+		//recommendRate2 int64
+		//recommendRate3 int64
+		//recommendRate4 int64
+		//recommendRate5 int64
+		//recommendRate6 int64
+		//recommendRate7 int64
+		//recommendRate8 int64
+		//recommendBase  = int64(100)
+	)
+	// 配置
+	configs, _ = uuc.configRepo.GetConfigByKeys(ctx,
+		"area_one", "area_two", "area_three", "area_four", "area_five", "recommend_new_one", "recommend_new_two", "exchange_rate",
+		"buy_one", "buy_two", "buy_six", "buy_three", "buy_four", "buy_five", "b_price", "b_price_base", "recommend_rate_1", "recommend_rate_2", "recommend_rate_3", "recommend_rate_4", "recommend_rate_5", "recommend_rate_6", "recommend_rate_7", "recommend_rate_8")
+	if nil != configs {
+		for _, vConfig := range configs {
+			if "buy_one" == vConfig.KeyName {
+				buyOne, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "buy_two" == vConfig.KeyName {
+				buyTwo, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "buy_three" == vConfig.KeyName {
+				buyThree, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "buy_four" == vConfig.KeyName {
+				buyFour, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "buy_five" == vConfig.KeyName {
+				buyFive, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+
+			if "buy_six" == vConfig.KeyName {
+				buySix, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+
+			if "area_one" == vConfig.KeyName {
+				areaOne, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "area_two" == vConfig.KeyName {
+				areaTwo, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "area_three" == vConfig.KeyName {
+				areaThree, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "area_four" == vConfig.KeyName {
+				areaFour, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "area_five" == vConfig.KeyName {
+				areaFive, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "recommend_new_one" == vConfig.KeyName {
+				recommendOne, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "recommend_new_two" == vConfig.KeyName {
+				recommendTwo, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "b_price" == vConfig.KeyName {
+				bPrice, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "b_price_base" == vConfig.KeyName {
+				bPriceBase, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "exchange_rate" == vConfig.KeyName {
+				feeRate, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+
+			//		if "b_price_base" == vConfig.KeyName {
+			//			bPriceBase, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			//		}
+			//		if "recommend_rate_1" == vConfig.KeyName {
+			//			recommendRate1, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			//		}
+			//		if "recommend_rate_2" == vConfig.KeyName {
+			//			recommendRate2, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			//		}
+			//		if "recommend_rate_3" == vConfig.KeyName {
+			//			recommendRate3, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			//		}
+			//		if "recommend_rate_4" == vConfig.KeyName {
+			//			recommendRate4, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			//		}
+			//		if "recommend_rate_5" == vConfig.KeyName {
+			//			recommendRate5, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			//		}
+			//		if "recommend_rate_6" == vConfig.KeyName {
+			//			recommendRate6, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			//		}
+			//		if "recommend_rate_7" == vConfig.KeyName {
+			//			recommendRate7, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			//		}
+			//		if "recommend_rate_8" == vConfig.KeyName {
+			//			recommendRate8, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			//		}
+		}
+	}
+
+	for _, v := range ethUserRecord {
+		var (
+			user           *User
+			allLocations   []*LocationNew
+			myLocations    []*LocationNew
+			myLastLocation *LocationNew
+			lastLevel      int64
+			err            error
+		)
+		user, err = uuc.repo.GetUserById(ctx, v.UserId)
+		if nil != err || nil == user {
+			fmt.Println(err, "用户不存在，buy")
+			continue
+		}
+
+		// 获取当前用户的占位信息，已经有运行中的跳过
+		allLocations, err = uuc.locationRepo.GetAllLocationsNew(ctx, v.RelAmount*25/10) // 同倍率的
+		if nil == allLocations {                                                        // 查询异常跳过本次循环
+			fmt.Println(err, "错误投资", v)
+			continue
+		}
+		if nil != err {
+			fmt.Println(err, "123")
+			continue
+		}
+
+		if 10000000 == v.RelAmount && int64(len(allLocations)) < buySix {
+
+		} else if 30000000 == v.RelAmount && int64(len(allLocations)) < buyOne {
+
+		} else if 100000000 == v.RelAmount && int64(len(allLocations)) < buyTwo {
+
+		} else if 300000000 == v.RelAmount && int64(len(allLocations)) < buyThree {
+
+		} else if 500000000 == v.RelAmount && int64(len(allLocations)) < buyFour {
+
+		} else if 1000000000 == v.RelAmount && int64(len(allLocations)) < buyFive {
+
+		} else {
+			fmt.Println(v, "1234")
+			continue
+		}
+
+		// 获取当前用户的占位信息，已经有运行中的跳过
+		myLocations, err = uuc.locationRepo.GetLocationsNewByUserId(ctx, v.UserId)
+		if nil == myLocations { // 查询异常跳过本次循环
+			fmt.Println(err, "错误投资2", v)
+			continue
+		}
+		if nil != err {
+			fmt.Println(err, "12")
+			continue
+		}
+
+		if 0 < len(myLocations) {
+			var (
+				stop bool
+			)
+
+			for _, vMyLocations := range myLocations {
+				if "stop" != vMyLocations.Status {
+					stop = true
+					fmt.Println(err, "已投资", v)
+					break
+				}
+
+				myLastLocation = vMyLocations // 遍历到最后一个
+				var tmpLastLevel int64
+				// 1大区
+				if vMyLocations.Total >= vMyLocations.TotalTwo && vMyLocations.Total >= vMyLocations.TotalThree {
+					if areaOne <= vMyLocations.TotalTwo+vMyLocations.TotalThree {
+						tmpLastLevel = 1
+					}
+					if areaTwo <= vMyLocations.TotalTwo+vMyLocations.TotalThree {
+						tmpLastLevel = 2
+					}
+					if areaThree <= vMyLocations.TotalTwo+vMyLocations.TotalThree {
+						tmpLastLevel = 3
+					}
+					if areaFour <= vMyLocations.TotalTwo+vMyLocations.TotalThree {
+						tmpLastLevel = 4
+					}
+					if areaFive <= vMyLocations.TotalTwo+vMyLocations.TotalThree {
+						tmpLastLevel = 5
+					}
+				} else if vMyLocations.TotalTwo >= vMyLocations.Total && vMyLocations.TotalTwo >= vMyLocations.TotalThree {
+					if areaOne <= vMyLocations.Total+vMyLocations.TotalThree {
+						tmpLastLevel = 1
+					}
+					if areaTwo <= vMyLocations.Total+vMyLocations.TotalThree {
+						tmpLastLevel = 2
+					}
+					if areaThree <= vMyLocations.Total+vMyLocations.TotalThree {
+						tmpLastLevel = 3
+					}
+					if areaFour <= vMyLocations.Total+vMyLocations.TotalThree {
+						tmpLastLevel = 4
+					}
+					if areaFive <= vMyLocations.Total+vMyLocations.TotalThree {
+						tmpLastLevel = 5
+					}
+				} else if vMyLocations.TotalThree >= vMyLocations.Total && vMyLocations.TotalThree >= vMyLocations.TotalTwo {
+					if areaOne <= vMyLocations.TotalTwo+vMyLocations.Total {
+						tmpLastLevel = 1
+					}
+					if areaTwo <= vMyLocations.TotalTwo+vMyLocations.Total {
+						tmpLastLevel = 2
+					}
+					if areaThree <= vMyLocations.TotalTwo+vMyLocations.Total {
+						tmpLastLevel = 3
+					}
+					if areaFour <= vMyLocations.TotalTwo+vMyLocations.Total {
+						tmpLastLevel = 4
+					}
+					if areaFive <= vMyLocations.TotalTwo+vMyLocations.Total {
+						tmpLastLevel = 5
+					}
+				}
+
+				if tmpLastLevel > lastLevel {
+					lastLevel = tmpLastLevel
+				}
+
+				if vMyLocations.LastLevel > lastLevel {
+					lastLevel = vMyLocations.LastLevel
+				}
+			}
+
+			if stop {
+				continue // 跳过已经投资
+			}
+		}
+
+		// 推荐人
+		var (
+			userRecommend         *UserRecommend
+			myUserRecommendUserId int64
+			tmpRecommendUserIds   []string
+		)
+		userRecommend, err = uuc.urRepo.GetUserRecommendByUserId(ctx, v.UserId)
+		if nil != err {
+			continue
+		}
+		if "" != userRecommend.RecommendCode {
+			tmpRecommendUserIds = strings.Split(userRecommend.RecommendCode, "D")
+			if 2 <= len(tmpRecommendUserIds) {
+				myUserRecommendUserId, _ = strconv.ParseInt(tmpRecommendUserIds[len(tmpRecommendUserIds)-1], 10, 64) // 最后一位是直推人
+			}
+		}
+
+		// 直推人投资
+		var (
+			myRecommmendLocation *LocationNew
+		)
+		if 0 < myUserRecommendUserId {
+			myRecommmendLocation, err = uuc.locationRepo.GetMyLocationLastRunning(ctx, myUserRecommendUserId)
+			if nil != err {
+				continue
+			}
+		}
+
+		// 顺位
+		var (
+			lastLocation *LocationNew
+		)
+
+		// 有直推人占位且第一次入金，挂在直推人名下，按位查找
+		if nil != myRecommmendLocation && nil == myLastLocation {
+			var (
+				selectLocation *LocationNew // 选中的
+			)
+			if 3 <= myRecommmendLocation.Count {
+				var tmpSopFor bool
+
+				tmpIds := make([]int64, 0)
+				tmpIds = append(tmpIds, myRecommmendLocation.ID)
+				for _, vTmpId := range tmpIds { // 小于3个人
+					// 查找
+					var (
+						topLocations []*LocationNew
+					)
+					topLocations, err = uuc.locationRepo.GetLocationsByTop(ctx, vTmpId)
+					if nil != err {
+						break
+					}
+
+					// 没数据没数据, 正常最少三个
+					if 0 >= len(topLocations) {
+						tmpSopFor = true
+						break
+					}
+
+					for _, vTopLocations := range topLocations {
+						if 3 > vTopLocations.Count {
+							selectLocation = vTopLocations
+							break
+						}
+						tmpIds = append(tmpIds, vTopLocations.ID)
+					}
+
+					if nil != selectLocation {
+						break
+					}
+					//
+				}
+
+				if tmpSopFor {
+					continue
+				}
+
+			} else {
+				selectLocation = myRecommmendLocation
+			}
+
+			lastLocation = selectLocation
+		} else if nil != myLastLocation || nil == myRecommmendLocation { // 2复投，直接顺位 2直推无位置或一号用户无直推人，顺位补齐
+
+			var (
+				firstLocation  *LocationNew
+				tmpSopFor      bool
+				selectLocation *LocationNew // 选中的
+			)
+
+			firstLocation, err = uuc.locationRepo.GetLocationFirst(ctx)
+			if nil != err {
+				continue
+			}
+			if nil != firstLocation {
+				if 3 <= firstLocation.Count {
+					tmpIds := make([]int64, 0)
+					tmpIds = append(tmpIds, firstLocation.ID)
+					for _, vTmpId := range tmpIds { // 小于3个人
+						// 查找
+						var (
+							topLocations []*LocationNew
+						)
+						topLocations, err = uuc.locationRepo.GetLocationsByTop(ctx, vTmpId)
+						if nil != err {
+							break
+						}
+
+						// 没数据, 正常最少三个
+						if 0 >= len(topLocations) {
+							tmpSopFor = true
+							break
+						}
+
+						for _, vTopLocations := range topLocations {
+							if 3 > vTopLocations.Count {
+								selectLocation = vTopLocations
+								break
+							}
+							tmpIds = append(tmpIds, vTopLocations.ID)
+						}
+
+						if nil != selectLocation {
+							break
+						}
+						//
+					}
+
+					if tmpSopFor {
+						continue
+					}
+				} else {
+					selectLocation = firstLocation
+				}
+			}
+
+			lastLocation = selectLocation
+		} else {
+			continue
+		}
+
+		if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
+
+			// 推荐人
+			if 0 < len(tmpRecommendUserIds) {
+				lastKey := len(tmpRecommendUserIds) - 1 // 有直推len比>=2 ,key是0则是空格，1是直推，键位最后一个人
+				if 1 <= lastKey {
+					for i := 0; i <= 1; i++ { // 两代
+						// 有占位信息，推荐人推荐人的上一代
+						if lastKey-i <= 0 {
+							break
+						}
+
+						tmpMyTopUserRecommendUserId, _ := strconv.ParseInt(tmpRecommendUserIds[lastKey-i], 10, 64) // 最后一位是直推人
+						if 0 >= tmpMyTopUserRecommendUserId {
+							break
+						}
+
+						var myUserRecommendUserLocationsLast []*LocationNew
+						myUserRecommendUserLocationsLast, err = uuc.locationRepo.GetLocationsNewByUserId(ctx, tmpMyTopUserRecommendUserId)
+						if nil != myUserRecommendUserLocationsLast {
+
+							var tmpMyTopUserRecommendUserLocationLast *LocationNew
+							if 1 <= len(myUserRecommendUserLocationsLast) {
+								for _, vMyUserRecommendUserLocationLast := range myUserRecommendUserLocationsLast {
+									if "running" == vMyUserRecommendUserLocationLast.Status {
+										tmpMyTopUserRecommendUserLocationLast = vMyUserRecommendUserLocationLast
+										break
+									}
+								}
+
+								if nil == tmpMyTopUserRecommendUserLocationLast { // 无位
+									continue
+								}
+
+								tmpMinUsdt := tmpMyTopUserRecommendUserLocationLast.Usdt
+								if v.RelAmount < tmpMinUsdt {
+									tmpMinUsdt = v.RelAmount
+								}
+
+								var tmpMyRecommendAmount int64
+								if 0 == i { // 当前用户被此人直推
+									tmpMyRecommendAmount = tmpMinUsdt / 1000 * recommendOne
+								} else if 1 == i {
+									tmpMyRecommendAmount = tmpMinUsdt / 1000 * recommendTwo
+								} else {
+									continue
+								}
+
+								if 0 < tmpMyRecommendAmount { // 扣除推荐人分红
+									bAmount := tmpMyRecommendAmount * bPriceBase / bPrice
+									tmpStatus := tmpMyTopUserRecommendUserLocationLast.Status
+									tmpStopDate := time.Now().UTC().Add(8 * time.Hour)
+									// 过了
+									if tmpMyTopUserRecommendUserLocationLast.Current+tmpMyRecommendAmount >= tmpMyTopUserRecommendUserLocationLast.CurrentMax { // 占位分红人分满停止
+										tmpStatus = "stop"
+										tmpStopDate = time.Now().UTC().Add(8 * time.Hour)
+
+										tmpMyRecommendAmount = tmpMyTopUserRecommendUserLocationLast.CurrentMax - tmpMyTopUserRecommendUserLocationLast.Current
+										bAmount = tmpMyRecommendAmount * bPriceBase / bPrice
+									}
+
+									if 0 < tmpMyRecommendAmount && 0 < bAmount {
+										var tmpMaxNew int64
+										if tmpMyTopUserRecommendUserLocationLast.CurrentMaxNew < tmpMyTopUserRecommendUserLocationLast.CurrentMax {
+											tmpMaxNew = tmpMyTopUserRecommendUserLocationLast.CurrentMax - tmpMyTopUserRecommendUserLocationLast.CurrentMaxNew
+										}
+
+										if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
+											err = uuc.locationRepo.UpdateLocationNewNew(ctx, tmpMyTopUserRecommendUserLocationLast.ID, tmpStatus, tmpMyRecommendAmount, tmpMaxNew, bAmount, tmpStopDate) // 分红占位数据修改
+											if nil != err {
+												return err
+											}
+
+											_, err = uuc.ubRepo.RecommendLocationRewardBiw(ctx, tmpMyTopUserRecommendUserId, bAmount, int64(i+1), tmpStatus, tmpMaxNew, feeRate) // 推荐人奖励
+											if nil != err {
+												return err
+											}
+
+											// 业绩减掉
+											if "stop" == tmpStatus {
+												tmpTop := tmpMyTopUserRecommendUserLocationLast.Top
+												tmpTopNum := tmpMyTopUserRecommendUserLocationLast.TopNum
+												for j := 0; j < 10000 && 0 < tmpTop && 0 < tmpTopNum; j++ {
+													err = uuc.locationRepo.UpdateLocationNewTotalSub(ctx, tmpTop, tmpTopNum, tmpMyTopUserRecommendUserLocationLast.Usdt/100000)
+													if nil != err {
+														return err
+													}
+
+													var (
+														currentLocation *LocationNew
+													)
+													currentLocation, err = uuc.locationRepo.GetLocationById(ctx, tmpTop)
+													if nil != err {
+														return err
+													}
+
+													if nil != currentLocation && 0 < currentLocation.Top {
+														tmpTop = currentLocation.Top
+														tmpTopNum = currentLocation.TopNum
+														continue
+													}
+
+													break
+												}
+											}
+
+											return nil
+										}); nil != err {
+											fmt.Println("err reward daily recommend", err, myUserRecommendUserLocationsLast)
+											continue
+										}
+									}
+								}
+							}
+						}
+
+					}
+
+				}
+
+			}
+
+			var (
+				tmpTop int64
+				tmpNum int64
+			)
+
+			// 顺位
+			if nil != lastLocation {
+				err = uuc.locationRepo.UpdateLocationNewCount(ctx, lastLocation.ID, lastLocation.Count+1, v.RelAmount/100000)
+				if nil != err {
+					return err
+				}
+				tmpTop = lastLocation.ID
+				tmpNum = lastLocation.Count + 1
+
+				var (
+					currentTop    = lastLocation.Top
+					currentTopNum = lastLocation.TopNum
+				)
+				// 大小区业绩
+				for j := 0; j < 10000 && 0 < currentTop && 0 < currentTopNum; j++ {
+					err = uuc.locationRepo.UpdateLocationNewTotal(ctx, currentTop, currentTopNum, v.RelAmount/100000)
+					if nil != err {
+						return err
+					}
+
+					var (
+						currentLocation *LocationNew
+					)
+					currentLocation, err = uuc.locationRepo.GetLocationById(ctx, currentTop)
+					if nil != err {
+						return err
+					}
+
+					if nil != currentLocation && 0 < currentLocation.Top && 0 < currentLocation.TopNum {
+						currentTop = currentLocation.Top
+						currentTopNum = currentLocation.TopNum
+						continue
+					}
+
+					break
+				}
+			}
+
+			_, err = uuc.locationRepo.CreateLocationNew(ctx, &LocationNew{ // 占位
+				UserId:     v.UserId,
+				Status:     "running",
+				Current:    0,
+				CurrentMax: v.RelAmount * 25 / 10, // 2.5倍率
+				Num:        1,
+				Top:        tmpTop,
+				TopNum:     tmpNum,
+				LastLevel:  lastLevel,
+			}, v.RelAmount)
+
+			if nil != err {
+				return err
+			}
+
+			if 0 < myUserRecommendUserId {
+				err = uuc.urRepo.UpdateUserRecommendTotal(ctx, myUserRecommendUserId, v.RelAmount/100000)
+				if nil != err {
+					return err
+				}
+			}
+
+			err = uuc.repo.UpdateUserNewTwoNew(ctx, v.UserId, amount, coinType)
+			if nil != err {
+				return err
+			}
+
+			// 充值记录
+			err = uuc.repo.InRecordNew(ctx, v.UserId, user.Address, int64(amount), coinType)
+			if nil != err {
+				return err
+			}
+
+			return nil
+		}); nil != err {
+			fmt.Println(err, "错误投资3", v)
+			continue
+		}
+	}
+
+	return true, nil
+}
+
 // Exchange Exchange.
 func (uuc *UserUseCase) Exchange(ctx context.Context, req *v1.ExchangeRequest, user *User) (*v1.ExchangeReply, error) {
 	var (
@@ -1834,7 +2537,6 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 		req.SendBody.Type = "usdt"
 	} else if "1" == req.SendBody.Type {
 		req.SendBody.Type = "dhb"
-		return nil, err
 	}
 	//u, _ = uuc.repo.GetUserById(ctx, user.ID)
 	//if nil != err {
@@ -1889,16 +2591,12 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 		withdrawMin    int64
 		withdrawMaxBiw int64
 		withdrawMinBiw int64
-		//bPrice         int64
-		//bPriceBase     int64
 	)
 	configs, err = uuc.configRepo.GetConfigByKeys(ctx,
 		"withdraw_amount_max",
 		"withdraw_amount_max_biw",
 		"withdraw_amount_min_biw",
 		"withdraw_amount_min",
-		"b_price",
-		"b_price_base",
 	)
 	if nil != configs {
 		for _, vConfig := range configs {
@@ -1917,17 +2615,9 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 			if "withdraw_amount_min_biw" == vConfig.KeyName {
 				withdrawMinBiw, _ = strconv.ParseInt(vConfig.Value+"00000", 10, 64)
 			}
-
-			//if "b_price" == vConfig.KeyName {
-			//	bPrice, _ = strconv.ParseInt(vConfig.Value, 10, 64)
-			//}
-			//
-			//if "b_price_base" == vConfig.KeyName {
-			//	bPriceBase, _ = strconv.ParseInt(vConfig.Value, 10, 64)
-			//}
 		}
 	}
-
+	//
 	//var (
 	//	locations       []*LocationNew
 	//	runningLocation *LocationNew
@@ -2068,7 +2758,6 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 				return err
 			}
 		} else if "dhb" == req.SendBody.Type {
-
 			err = uuc.ubRepo.WithdrawDhb(ctx, user.ID, amount) // 提现
 			if nil != err {
 				return err

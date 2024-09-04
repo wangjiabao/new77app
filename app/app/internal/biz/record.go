@@ -7,13 +7,16 @@ import (
 )
 
 type EthUserRecord struct {
-	ID       int64
-	UserId   int64
-	Hash     string
-	Status   string
-	Type     string
-	Amount   string
-	CoinType string
+	ID        int64
+	UserId    int64
+	Hash      string
+	Status    string
+	Type      string
+	Amount    string
+	AmountTwo uint64
+	CoinType  string
+	RelAmount int64
+	Last      uint64
 }
 
 type Location struct {
@@ -53,6 +56,12 @@ type EthUserRecordRepo interface {
 }
 
 type LocationRepo interface {
+	GetLocationById(ctx context.Context, id int64) (*LocationNew, error)
+	UpdateLocationNewTotalSub(ctx context.Context, id int64, count int64, total int64) error
+	UpdateLocationNewNew(ctx context.Context, id int64, status string, current int64, amountB int64, biw int64, stopDate time.Time) error
+	GetMyLocationLastRunning(ctx context.Context, userId int64) (*LocationNew, error)
+	GetLocationsNewByUserId(ctx context.Context, userId int64) ([]*LocationNew, error)
+	GetAllLocationsNew(ctx context.Context, currentMax int64) ([]*LocationNew, error)
 	CreateLocation(ctx context.Context, rel *Location) (*Location, error)
 	GetLocationLast(ctx context.Context) (*Location, error)
 	GetLocationDaily(ctx context.Context) ([]*Location, error)
@@ -61,6 +70,7 @@ type LocationRepo interface {
 	GetMyLocationRunningLast(ctx context.Context, userId int64) (*Location, error)
 	GetLocationsByUserId(ctx context.Context, userId int64) ([]*LocationNew, error)
 	GetLocationsByTop(ctx context.Context, top int64) ([]*LocationNew, error)
+	GetLocationFirst(ctx context.Context) (*LocationNew, error)
 	GetLocationsByUserId2(ctx context.Context, userId int64) ([]*LocationNew, error)
 	GetAllLocationsCount(ctx context.Context, usdt int64) int64
 	GetRewardLocationByRowOrCol(ctx context.Context, row int64, col int64, locationRowConfig int64) ([]*Location, error)
@@ -79,6 +89,9 @@ type LocationRepo interface {
 
 	GetMyStopLocationsLast(ctx context.Context, userId int64) ([]*LocationNew, error)
 	GetLocationDailyYesterday(ctx context.Context, day int) ([]*LocationNew, error)
+	UpdateLocationNewCount(ctx context.Context, id int64, count int64, total int64) error
+	UpdateLocationNewTotal(ctx context.Context, id int64, count int64, total int64) error
+	CreateLocationNew(ctx context.Context, rel *LocationNew, amount int64) (*LocationNew, error)
 }
 
 func NewRecordUseCase(

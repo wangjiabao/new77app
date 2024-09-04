@@ -43,6 +43,7 @@ const (
 	App_AdminWithdrawEth_FullMethodName    = "/api.App/AdminWithdrawEth"
 	App_AdminFee_FullMethodName            = "/api.App/AdminFee"
 	App_TokenWithdraw_FullMethodName       = "/api.App/TokenWithdraw"
+	App_Buy_FullMethodName                 = "/api.App/Buy"
 )
 
 // AppClient is the client API for App service.
@@ -96,6 +97,7 @@ type AppClient interface {
 	AdminWithdrawEth(ctx context.Context, in *AdminWithdrawEthRequest, opts ...grpc.CallOption) (*AdminWithdrawEthReply, error)
 	AdminFee(ctx context.Context, in *AdminFeeRequest, opts ...grpc.CallOption) (*AdminFeeReply, error)
 	TokenWithdraw(ctx context.Context, in *TokenWithdrawRequest, opts ...grpc.CallOption) (*TokenWithdrawReply, error)
+	Buy(ctx context.Context, in *BuyRequest, opts ...grpc.CallOption) (*BuyReply, error)
 }
 
 type appClient struct {
@@ -322,6 +324,15 @@ func (c *appClient) TokenWithdraw(ctx context.Context, in *TokenWithdrawRequest,
 	return out, nil
 }
 
+func (c *appClient) Buy(ctx context.Context, in *BuyRequest, opts ...grpc.CallOption) (*BuyReply, error) {
+	out := new(BuyReply)
+	err := c.cc.Invoke(ctx, App_Buy_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AppServer is the server API for App service.
 // All implementations must embed UnimplementedAppServer
 // for forward compatibility
@@ -373,6 +384,7 @@ type AppServer interface {
 	AdminWithdrawEth(context.Context, *AdminWithdrawEthRequest) (*AdminWithdrawEthReply, error)
 	AdminFee(context.Context, *AdminFeeRequest) (*AdminFeeReply, error)
 	TokenWithdraw(context.Context, *TokenWithdrawRequest) (*TokenWithdrawReply, error)
+	Buy(context.Context, *BuyRequest) (*BuyReply, error)
 	mustEmbedUnimplementedAppServer()
 }
 
@@ -451,6 +463,9 @@ func (UnimplementedAppServer) AdminFee(context.Context, *AdminFeeRequest) (*Admi
 }
 func (UnimplementedAppServer) TokenWithdraw(context.Context, *TokenWithdrawRequest) (*TokenWithdrawReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TokenWithdraw not implemented")
+}
+func (UnimplementedAppServer) Buy(context.Context, *BuyRequest) (*BuyReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Buy not implemented")
 }
 func (UnimplementedAppServer) mustEmbedUnimplementedAppServer() {}
 
@@ -897,6 +912,24 @@ func _App_TokenWithdraw_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _App_Buy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BuyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServer).Buy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: App_Buy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServer).Buy(ctx, req.(*BuyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // App_ServiceDesc is the grpc.ServiceDesc for App service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -999,6 +1032,10 @@ var App_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TokenWithdraw",
 			Handler:    _App_TokenWithdraw_Handler,
+		},
+		{
+			MethodName: "Buy",
+			Handler:    _App_Buy_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

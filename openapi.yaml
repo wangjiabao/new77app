@@ -102,6 +102,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /api/app_server/buy:
+        post:
+            tags:
+                - App
+            operationId: App_Buy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/BuyRequest_SendBody'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BuyReply'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /api/app_server/delete_balance_reward:
         post:
             tags:
@@ -562,6 +586,22 @@ components:
         AdminWithdrawReply:
             type: object
             properties: {}
+        BuyReply:
+            type: object
+            properties:
+                status:
+                    type: string
+        BuyRequest_SendBody:
+            type: object
+            properties:
+                amount:
+                    type: string
+                type:
+                    type: string
+                sign:
+                    type: string
+                publicKey:
+                    type: string
         DeleteBalanceRewardReply:
             type: object
             properties:
