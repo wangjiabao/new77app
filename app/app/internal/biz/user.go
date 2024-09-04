@@ -2479,38 +2479,38 @@ func (uuc *UserUseCase) Exchange(ctx context.Context, req *v1.ExchangeRequest, u
 		}, nil
 	}
 
-	var (
-		locations       []*LocationNew
-		runningLocation *LocationNew
-	)
+	//var (
+	//	locations       []*LocationNew
+	//	runningLocation *LocationNew
+	//)
+	//
+	//locations, err = uuc.locationRepo.GetLocationsByUserId(ctx, user.ID)
+	//if nil != err {
+	//	return nil, err
+	//}
+	//
+	//if 0 >= len(locations) {
+	//	return &v1.ExchangeReply{
+	//		Status: "fail location",
+	//	}, nil
+	//}
 
-	locations, err = uuc.locationRepo.GetLocationsByUserId(ctx, user.ID)
-	if nil != err {
-		return nil, err
-	}
-
-	if 0 >= len(locations) {
-		return &v1.ExchangeReply{
-			Status: "fail location",
-		}, nil
-	}
-
-	runningLocation = locations[0]
-	if "running" != runningLocation.Status {
-		return &v1.ExchangeReply{
-			Status: "fail location",
-		}, nil
-	}
-
-	if runningLocation.CurrentMax < runningLocation.CurrentMaxNew+amountUsdt {
-		return &v1.ExchangeReply{
-			Status: "fail location max",
-		}, nil
-	}
+	//runningLocation = locations[0]
+	//if "running" != runningLocation.Status {
+	//	return &v1.ExchangeReply{
+	//		Status: "fail location",
+	//	}, nil
+	//}
+	//
+	//if runningLocation.CurrentMax < runningLocation.CurrentMaxNew+amountUsdt {
+	//	return &v1.ExchangeReply{
+	//		Status: "fail location max",
+	//	}, nil
+	//}
 
 	if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
 
-		err = uuc.ubRepo.Exchange(ctx, user.ID, amount, amountUsdtSubFee, amountUsdt, runningLocation.ID) // 提现
+		err = uuc.ubRepo.Exchange(ctx, user.ID, amount, amountUsdtSubFee, amountUsdt, 0) // 提现
 		if nil != err {
 			return err
 		}
