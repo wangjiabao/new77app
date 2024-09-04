@@ -23,7 +23,6 @@ type User struct {
 	Undo            int64     `gorm:"type:int;not null"`
 	Amount          uint64    `gorm:"type:bigint"`
 	AmountBiw       uint64    `gorm:"type:bigint"`
-	CsdReward       int64     `gorm:"type:bigint"`
 	CreatedAt       time.Time `gorm:"type:datetime;not null"`
 	UpdatedAt       time.Time `gorm:"type:datetime;not null"`
 }
