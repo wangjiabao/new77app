@@ -982,12 +982,10 @@ func verifySig(sigHex string, msg []byte) (bool, string) {
 	return verified, recoveredAddr.Hex()
 }
 
-func verifySig2(sigHex []byte, publicKey []byte, msg []byte) (bool, string, error) {
-	// 启动
-	sdkClient := sdk.NewBCFWalletSDK()
-	var bCFSignUtil = sdkClient.NewBCFSignUtil("b")
-	defer sdkClient.Close()
+var sdkClient = sdk.NewBCFWalletSDK()
+var bCFSignUtil = sdkClient.NewBCFSignUtil("b")
 
+func verifySig2(sigHex []byte, publicKey []byte, msg []byte) (bool, string, error) {
 	// 创建keyPair
 	//bCFSignUtil_CreateKeypair, _ := bCFSignUtil.CreateKeypair("abcd bcdd bcdva ccd")
 	//address2, _ := bCFSignUtil.GetAddressFromPublicKeyString(bCFSignUtil_CreateKeypair.PublicKey, "b")
