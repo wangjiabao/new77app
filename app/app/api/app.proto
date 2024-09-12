@@ -390,6 +390,8 @@ message UserInfoReply {
 	string addressBiw = 112;
 	uint64 amountUsdt = 113;
 	uint64 amountBiw  = 114;
+	double price = 115; // biw价格
+	double priceChange = 116; // biw价格
 }
 
 message UserInfo1Reply {

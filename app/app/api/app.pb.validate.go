@@ -1599,6 +1599,10 @@ func (m *UserInfoReply) validate(all bool) error {
 
 	// no validation rules for AmountBiw
 
+	// no validation rules for Price
+
+	// no validation rules for PriceChange
+
 	if len(errors) > 0 {
 		return UserInfoReplyMultiError(errors)
 	}

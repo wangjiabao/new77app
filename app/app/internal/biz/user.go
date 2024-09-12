@@ -1143,6 +1143,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	return &v1.UserInfoReply{
 		Status:                status,
 		BiwPrice:              float64(bPrice) / float64(bPriceBase),
+		Price:                 float64(bPrice) / float64(bPriceBase),
 		ExchangeRate:          float64(exchangeRate) / 1000,
 		BalanceBiw:            fmt.Sprintf("%.2f", float64(userBalance.BalanceDhb)/float64(100000)) + "BIW",
 		BalanceUsdt:           fmt.Sprintf("%.2f", float64(userBalance.BalanceUsdt)/float64(100000)),
@@ -1738,11 +1739,21 @@ func (uuc *UserUseCase) Buy(ctx context.Context, req *v1.BuyRequest, user *User)
 	if nil != configs {
 		for _, vConfig := range configs {
 			if "b_price" == vConfig.KeyName {
-				bPrice, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+				bPrice, err = strconv.ParseInt(vConfig.Value, 10, 64)
+				if nil != err || bPrice < 1 {
+					return &v1.BuyReply{
+						Status: "币价错误",
+					}, nil
+				}
 			}
 
 			if "b_price_base" == vConfig.KeyName {
-				bPriceBase, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+				bPriceBase, err = strconv.ParseInt(vConfig.Value, 10, 64)
+				if nil != err || bPriceBase < 1 {
+					return &v1.BuyReply{
+						Status: "币价错误",
+					}, nil
+				}
 			}
 		}
 	}
@@ -1783,6 +1794,12 @@ func (uuc *UserUseCase) Buy(ctx context.Context, req *v1.BuyRequest, user *User)
 		tmpAmount = amount
 	} else if 2 == req.SendBody.Type {
 		amountBiw := amount * uint64(bPriceBase) / uint64(bPrice)
+		if 0 >= amountBiw {
+			return &v1.BuyReply{
+				Status: "所需biw为0，错误",
+			}, nil
+		}
+
 		if amountBiw > user.AmountBiw {
 			return &v1.BuyReply{
 				Status: "biw余额不足",
@@ -1820,6 +1837,7 @@ func (uuc *UserUseCase) Buy(ctx context.Context, req *v1.BuyRequest, user *User)
 func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, coinType string, ethUserRecord ...*EthUserRecord) (bool, error) {
 
 	var (
+		err          error
 		configs      []*Config
 		buyOne       int64
 		buyTwo       int64
@@ -1895,7 +1913,11 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 				recommendTwo, _ = strconv.ParseInt(vConfig.Value, 10, 64)
 			}
 			if "b_price" == vConfig.KeyName {
-				bPrice, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+				bPrice, err = strconv.ParseInt(vConfig.Value, 10, 64)
+				if nil != err {
+					fmt.Println(err, "b_price err")
+					return false, nil
+				}
 			}
 			if "b_price_base" == vConfig.KeyName {
 				bPriceBase, _ = strconv.ParseInt(vConfig.Value, 10, 64)
@@ -2382,7 +2404,7 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 				Top:        tmpTop,
 				TopNum:     tmpNum,
 				LastLevel:  lastLevel,
-			}, v.RelAmount)
+			}, v.RelAmount, coinType)
 
 			if nil != err {
 				return err

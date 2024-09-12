@@ -983,6 +983,12 @@ components:
                     type: string
                 amountBiw:
                     type: string
+                price:
+                    type: number
+                    format: double
+                priceChange:
+                    type: number
+                    format: double
         UserInfoReply_List:
             type: object
             properties:
