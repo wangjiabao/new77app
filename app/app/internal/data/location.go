@@ -174,7 +174,7 @@ func (lr *LocationRepo) UpdateLocationNewTotal(ctx context.Context, id int64, co
 }
 
 // CreateLocationNew .
-func (lr *LocationRepo) CreateLocationNew(ctx context.Context, rel *biz.LocationNew, amount int64, coinType string) (*biz.LocationNew, error) {
+func (lr *LocationRepo) CreateLocationNew(ctx context.Context, rel *biz.LocationNew, amount int64, amountB int64, address string, coinType string) (*biz.LocationNew, error) {
 	var location LocationNew
 	location.Status = rel.Status
 	location.Num = rel.Num
@@ -200,6 +200,22 @@ func (lr *LocationRepo) CreateLocationNew(ctx context.Context, rel *biz.Location
 	userBalanceRecode.Amount = amount
 	res = lr.data.DB(ctx).Table("user_balance_record").Create(&userBalanceRecode)
 	if res.Error != nil {
+		return nil, errors.New(500, "CREATE_LOCATION_ERROR", "占位信息创建失败")
+	}
+
+	var (
+		err    error
+		reward Reward
+	)
+
+	reward.UserId = rel.UserId
+	reward.Amount = amountB
+	reward.Address = address
+	reward.Type = coinType // 本次分红的行为类型
+	reward.TypeRecordId = userBalanceRecode.ID
+	reward.Reason = "buy" // 给我分红的理由
+	err = lr.data.DB(ctx).Table("reward").Create(&reward).Error
+	if err != nil {
 		return nil, errors.New(500, "CREATE_LOCATION_ERROR", "占位信息创建失败")
 	}
 

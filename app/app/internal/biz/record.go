@@ -91,7 +91,7 @@ type LocationRepo interface {
 	GetLocationDailyYesterday(ctx context.Context, day int) ([]*LocationNew, error)
 	UpdateLocationNewCount(ctx context.Context, id int64, count int64, total int64) error
 	UpdateLocationNewTotal(ctx context.Context, id int64, count int64, total int64) error
-	CreateLocationNew(ctx context.Context, rel *LocationNew, amount int64, coinType string) (*LocationNew, error)
+	CreateLocationNew(ctx context.Context, rel *LocationNew, amount int64, amountB int64, address string, coinType string) (*LocationNew, error)
 }
 
 func NewRecordUseCase(

@@ -2404,7 +2404,7 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 				Top:        tmpTop,
 				TopNum:     tmpNum,
 				LastLevel:  lastLevel,
-			}, v.RelAmount, coinType)
+			}, v.RelAmount, int64(amount), user.Address, coinType)
 
 			if nil != err {
 				return err
@@ -2418,12 +2418,6 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 			}
 
 			err = uuc.repo.UpdateUserNewTwoNew(ctx, v.UserId, amount, coinType)
-			if nil != err {
-				return err
-			}
-
-			// 充值记录
-			err = uuc.repo.InRecordNew(ctx, v.UserId, user.Address, int64(amount), coinType)
 			if nil != err {
 				return err
 			}
