@@ -2487,7 +2487,7 @@ func (uuc *UserUseCase) Exchange(ctx context.Context, req *v1.ExchangeRequest, u
 		}
 	}
 
-	amountUsdt := amount / bPriceBase * bPrice
+	amountUsdt := int64(float64(amount) / float64(bPriceBase) * float64(bPrice))
 	amountUsdtSubFee := amountUsdt - amountUsdt*exchangeRate/1000
 	if amountUsdt <= 0 {
 		return &v1.ExchangeReply{
