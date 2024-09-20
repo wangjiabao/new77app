@@ -296,8 +296,9 @@ type UserInfoRepo interface {
 }
 
 type UserRepo interface {
+	GetEthUserRecordListByUserId(ctx context.Context, userId int64) ([]*EthUserRecord, error)
 	InRecordNew(ctx context.Context, userId int64, address string, amount int64, coinType string) error
-	UpdateUserNewTwoNew(ctx context.Context, userId int64, amount uint64, coinType string) error
+	UpdateUserNewTwoNew(ctx context.Context, userId int64, amountUsdt uint64, amountBiw uint64, coinType string) error
 	GetUserById(ctx context.Context, Id int64) (*User, error)
 	GetUserByAddresses(ctx context.Context, Addresses ...string) (map[string]*User, error)
 	GetUserByAddress(ctx context.Context, address string) (*User, error)
@@ -1019,6 +1020,27 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		}
 	}
 
+	// 充值
+	var (
+		userEth []*EthUserRecord
+	)
+	userEth, err = uuc.repo.GetEthUserRecordListByUserId(ctx, myUser.ID)
+	if nil != err {
+		return nil, err
+	}
+	listUserEth := make([]*v1.UserInfoReply_ListEthRecord, 0)
+	for _, vUserEth := range userEth {
+		coinType := "BIW"
+		if "USDT" == vUserEth.CoinType {
+			coinType = vUserEth.CoinType
+		}
+		listUserEth = append(listUserEth, &v1.UserInfoReply_ListEthRecord{
+			Amount:    uint64(vUserEth.AmountTwo),
+			CoinType:  coinType,
+			CreatedAt: vUserEth.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
+		})
+	}
+
 	// 全球
 	var (
 		day                    = -1
@@ -1154,12 +1176,12 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		BuyNumFive:            count5,
 		BuyNumOne:             count1,
 		BuyNumSix:             count6,
-		SellNumOne:            buyOne - count1,
-		SellNumTwo:            buyTwo - count2,
-		SellNumThree:          buyThree - count3,
-		SellNumFour:           buyFour - count4,
-		SellNumFive:           buyFive - count5,
-		SellNumSix:            buySix - count6,
+		SellNumOne:            float64(buyOne-count1) / float64(count1),
+		SellNumTwo:            float64(buyTwo-count2) / float64(count2),
+		SellNumThree:          float64(buyThree-count3) / float64(count3),
+		SellNumFour:           float64(buyFour-count4) / float64(count4),
+		SellNumFive:           float64(buyFive-count5) / float64(count5),
+		SellNumSix:            float64(buySix-count6) / float64(count6),
 		DailyRate:             0,
 		BiwDailySpeed:         0,
 		CurrentAmountBiw:      currentAmountBiw,
@@ -1199,6 +1221,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		AmountUsdt:            myUser.Amount,
 		Address:               myUser.AddressTwo,
 		AddressBiw:            myUser.AddressThree,
+		ListEth:               listUserEth,
 	}, nil
 }
 
@@ -1783,17 +1806,20 @@ func (uuc *UserUseCase) Buy(ctx context.Context, req *v1.BuyRequest, user *User)
 		}, nil
 	}
 
-	var tmpAmount uint64
+	var (
+		amountUsdt uint64
+		amountBiw  uint64
+	)
+	amountUsdt = amount / 2 // 半个
 	if 1 == req.SendBody.Type {
-		if amount > user.Amount {
+		if amountUsdt > user.Amount {
 			return &v1.BuyReply{
 				Status: "余额不足",
 			}, nil
 		}
 		coinType = "USDT"
-		tmpAmount = amount
-	} else if 2 == req.SendBody.Type {
-		amountBiw := amount * uint64(bPriceBase) / uint64(bPrice)
+
+		amountBiw = amountUsdt * uint64(bPriceBase) / uint64(bPrice)
 		if 0 >= amountBiw {
 			return &v1.BuyReply{
 				Status: "所需biw为0，错误",
@@ -1805,8 +1831,22 @@ func (uuc *UserUseCase) Buy(ctx context.Context, req *v1.BuyRequest, user *User)
 				Status: "biw余额不足",
 			}, nil
 		}
-		coinType = "DHB"
-		tmpAmount = amountBiw
+		//} else if 2 == req.SendBody.Type {
+		//	amountBiw := amount * uint64(bPriceBase) / uint64(bPrice)
+		//	if 0 >= amountBiw {
+		//		return &v1.BuyReply{
+		//			Status: "所需biw为0，错误",
+		//		}, nil
+		//	}
+		//
+		//	if amountBiw > user.AmountBiw {
+		//		return &v1.BuyReply{
+		//			Status: "biw余额不足",
+		//		}, nil
+		//	}
+		//	coinType = "DHB"
+		//	tmpAmount = amountBiw
+		//} else {
 	} else {
 		return &v1.BuyReply{
 			Status: "类型错误",
@@ -1824,7 +1864,7 @@ func (uuc *UserUseCase) Buy(ctx context.Context, req *v1.BuyRequest, user *User)
 		Last:      0,
 	})
 
-	_, err = uuc.EthUserRecordHandle(ctx, tmpAmount, coinType, notExistDepositResult...)
+	_, err = uuc.EthUserRecordHandle(ctx, amount, amountUsdt, amountBiw, coinType, notExistDepositResult...)
 	if nil != err {
 		fmt.Println(err)
 	}
@@ -1834,7 +1874,7 @@ func (uuc *UserUseCase) Buy(ctx context.Context, req *v1.BuyRequest, user *User)
 	}, nil
 }
 
-func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, coinType string, ethUserRecord ...*EthUserRecord) (bool, error) {
+func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, amountUsdt uint64, amountBiw uint64, coinType string, ethUserRecord ...*EthUserRecord) (bool, error) {
 
 	var (
 		err          error
@@ -2417,7 +2457,7 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 				}
 			}
 
-			err = uuc.repo.UpdateUserNewTwoNew(ctx, v.UserId, amount, coinType)
+			err = uuc.repo.UpdateUserNewTwoNew(ctx, v.UserId, amountUsdt, amountBiw, coinType)
 			if nil != err {
 				return err
 			}

@@ -871,17 +871,23 @@ components:
                 buyNumSix:
                     type: string
                 sellNumOne:
-                    type: string
+                    type: number
+                    format: double
                 sellNumTwo:
-                    type: string
+                    type: number
+                    format: double
                 sellNumThree:
-                    type: string
+                    type: number
+                    format: double
                 sellNumFour:
-                    type: string
+                    type: number
+                    format: double
                 sellNumFive:
-                    type: string
+                    type: number
+                    format: double
                 sellNumSix:
-                    type: string
+                    type: number
+                    format: double
                 dailyRate:
                     type: number
                     format: double
@@ -961,6 +967,10 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/UserInfoReply_ListExchange'
+                ListEth:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/UserInfoReply_ListEthRecord'
                 configOne:
                     type: string
                 configTwo:
@@ -997,6 +1007,15 @@ components:
                 currentMaxSubCurrent:
                     type: string
                 amount:
+                    type: string
+        UserInfoReply_ListEthRecord:
+            type: object
+            properties:
+                amount:
+                    type: string
+                coinType:
+                    type: string
+                createdAt:
                     type: string
         UserInfoReply_ListExchange:
             type: object

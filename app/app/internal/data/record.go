@@ -16,6 +16,7 @@ type EthUserRecord struct {
 	Status    string    `gorm:"type:varchar(45);not null"`
 	Type      string    `gorm:"type:varchar(45);not null"`
 	Amount    string    `gorm:"type:varchar(45);not null"`
+	AmountTwo int64     `gorm:"type:int;not null"`
 	CoinType  string    `gorm:"type:varchar(45);not null"`
 	CreatedAt time.Time `gorm:"type:datetime;not null"`
 	UpdatedAt time.Time `gorm:"type:datetime;not null"`

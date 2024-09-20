@@ -1577,6 +1577,40 @@ func (m *UserInfoReply) validate(all bool) error {
 
 	}
 
+	for idx, item := range m.GetListEth() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, UserInfoReplyValidationError{
+						field:  fmt.Sprintf("ListEth[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, UserInfoReplyValidationError{
+						field:  fmt.Sprintf("ListEth[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return UserInfoReplyValidationError{
+					field:  fmt.Sprintf("ListEth[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
 	// no validation rules for ConfigOne
 
 	// no validation rules for ConfigTwo
@@ -9443,6 +9477,115 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UserInfoReply_ListExchangeValidationError{}
+
+// Validate checks the field values on UserInfoReply_ListEthRecord with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UserInfoReply_ListEthRecord) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UserInfoReply_ListEthRecord with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UserInfoReply_ListEthRecordMultiError, or nil if none found.
+func (m *UserInfoReply_ListEthRecord) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UserInfoReply_ListEthRecord) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Amount
+
+	// no validation rules for CoinType
+
+	// no validation rules for CreatedAt
+
+	if len(errors) > 0 {
+		return UserInfoReply_ListEthRecordMultiError(errors)
+	}
+
+	return nil
+}
+
+// UserInfoReply_ListEthRecordMultiError is an error wrapping multiple
+// validation errors returned by UserInfoReply_ListEthRecord.ValidateAll() if
+// the designated constraints aren't met.
+type UserInfoReply_ListEthRecordMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UserInfoReply_ListEthRecordMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UserInfoReply_ListEthRecordMultiError) AllErrors() []error { return m }
+
+// UserInfoReply_ListEthRecordValidationError is the validation error returned
+// by UserInfoReply_ListEthRecord.Validate if the designated constraints
+// aren't met.
+type UserInfoReply_ListEthRecordValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UserInfoReply_ListEthRecordValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UserInfoReply_ListEthRecordValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UserInfoReply_ListEthRecordValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UserInfoReply_ListEthRecordValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UserInfoReply_ListEthRecordValidationError) ErrorName() string {
+	return "UserInfoReply_ListEthRecordValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UserInfoReply_ListEthRecordValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUserInfoReply_ListEthRecord.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UserInfoReply_ListEthRecordValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UserInfoReply_ListEthRecordValidationError{}
 
 // Validate checks the field values on UserInfo1Reply_List with the rules
 // defined in the proto definition for this message. If any rules are

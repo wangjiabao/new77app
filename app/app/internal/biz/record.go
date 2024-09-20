@@ -13,10 +13,11 @@ type EthUserRecord struct {
 	Status    string
 	Type      string
 	Amount    string
-	AmountTwo uint64
+	AmountTwo int64
 	CoinType  string
 	RelAmount int64
 	Last      uint64
+	CreatedAt time.Time
 }
 
 type Location struct {

@@ -315,22 +315,52 @@ func (c *ConfigRepo) UpdateConfig(ctx context.Context, id int64, value string) (
 }
 
 // UpdateUserNewTwoNew .
-func (u *UserRepo) UpdateUserNewTwoNew(ctx context.Context, userId int64, amount uint64, coinType string) error {
+func (u *UserRepo) UpdateUserNewTwoNew(ctx context.Context, userId int64, amountUsdt uint64, amountBiw uint64, coinType string) error {
 	if "USDT" == coinType {
-		res := u.data.DB(ctx).Table("user").Where("id=? and amount >= ?", userId, amount).
-			Updates(map[string]interface{}{"amount": gorm.Expr("amount - ?", amount)})
+		res := u.data.DB(ctx).Table("user").Where("id=? and amount >= ? and amount_biw >= ?", userId, amountUsdt, amountBiw).
+			Updates(map[string]interface{}{"amount": gorm.Expr("amount - ?", amountUsdt), "amount_biw": gorm.Expr("amount_biw - ?", amountBiw)})
 		if res.Error != nil {
 			return errors.New(500, "UPDATE_USER_ERROR", "用户信息修改失败")
 		}
 	} else {
-		res := u.data.DB(ctx).Table("user").Where("id=? and amount_biw >= ?", userId, amount).
-			Updates(map[string]interface{}{"amount_biw": gorm.Expr("amount_biw - ?", amount)})
-		if res.Error != nil {
-			return errors.New(500, "UPDATE_USER_ERROR", "用户信息修改失败")
-		}
+		return errors.New(500, "UPDATE_USER_ERROR", "未知类型，修改余额")
+		//res := u.data.DB(ctx).Table("user").Where("id=? and amount_biw >= ?", userId, amount).
+		//	Updates(map[string]interface{}{"amount_biw": gorm.Expr("amount_biw - ?", amount)})
+		//if res.Error != nil {
+		//	return errors.New(500, "UPDATE_USER_ERROR", "用户信息修改失败")
+		//}
 	}
 
 	return nil
+}
+
+func (u *UserRepo) GetEthUserRecordListByUserId(ctx context.Context, userId int64) ([]*biz.EthUserRecord, error) {
+	var ethUserRecord []*EthUserRecord
+
+	res := make([]*biz.EthUserRecord, 0)
+	if err := u.data.DB(ctx).Table("eth_user_record").Where("user_id=?", userId).Find(&ethUserRecord).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return res, errors.NotFound("USER_RECOMMEND_NOT_FOUND", "user recommend not found")
+		}
+
+		return nil, errors.New(500, "USER RECOMMEND ERROR", err.Error())
+	}
+
+	for _, item := range ethUserRecord {
+		res = append(res, &biz.EthUserRecord{
+			ID:        item.ID,
+			UserId:    item.UserId,
+			Hash:      item.Hash,
+			Status:    item.Status,
+			Type:      item.Type,
+			Amount:    item.Amount,
+			AmountTwo: item.AmountTwo,
+			CoinType:  item.CoinType,
+			CreatedAt: item.CreatedAt,
+		})
+	}
+
+	return res, nil
 }
 
 // InRecordNew .
