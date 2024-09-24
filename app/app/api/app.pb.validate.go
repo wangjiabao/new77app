@@ -11452,6 +11452,8 @@ func (m *WithdrawRequest_SendBody) validate(all bool) error {
 
 	// no validation rules for PublicKey
 
+	// no validation rules for Address
+
 	if len(errors) > 0 {
 		return WithdrawRequest_SendBodyMultiError(errors)
 	}

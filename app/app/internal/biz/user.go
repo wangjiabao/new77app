@@ -227,7 +227,7 @@ type UserBalanceRepo interface {
 	GetUserRewardsLastMonthFee(ctx context.Context) ([]*Reward, error)
 	GetUserBalanceByUserIds(ctx context.Context, userIds ...int64) (map[int64]*UserBalance, error)
 	GetUserBalanceUsdtTotal(ctx context.Context) (int64, error)
-	GreateWithdraw(ctx context.Context, userId int64, relAmount int64, amount int64, amountFee int64, coinType string) (*Withdraw, error)
+	GreateWithdraw(ctx context.Context, userId int64, relAmount int64, amount int64, amountFee int64, coinType string, address string) (*Withdraw, error)
 	WithdrawUsdt(ctx context.Context, userId int64, amount int64, tmpRecommendUserIdsInt []int64) error
 	WithdrawUsdt2(ctx context.Context, userId int64, amount int64) error
 	Exchange(ctx context.Context, userId int64, amount int64, amountUsdtSubFee int64, amountUsdt int64, locationId int64) error
@@ -1800,6 +1800,15 @@ func (uuc *UserUseCase) Buy(ctx context.Context, req *v1.BuyRequest, user *User)
 	} else if 10000 == amount {
 		tmpValue = int64(1000000000)
 		strValue = "10000000000000000000000"
+	} else if 300 == amount {
+		tmpValue = int64(30000000)
+		strValue = "300000000000000000000"
+	} else if 15000 == amount {
+		tmpValue = int64(1500000000)
+		strValue = "15000000000000000000000"
+	} else if 30000 == amount {
+		tmpValue = int64(3000000000)
+		strValue = "30000000000000000000000"
 	} else {
 		return &v1.BuyReply{
 			Status: "金额错误",
@@ -1885,6 +1894,8 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 		buyFour      int64
 		buyFive      int64
 		buySix       int64
+		buySeven     int64
+		buyEight     int64
 		areaOne      int64
 		areaTwo      int64
 		areaThree    int64
@@ -1929,6 +1940,13 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 
 			if "buy_six" == vConfig.KeyName {
 				buySix, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+
+			if "buy_seven" == vConfig.KeyName {
+				buySeven, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "buy_eight" == vConfig.KeyName {
+				buyEight, _ = strconv.ParseInt(vConfig.Value, 10, 64)
 			}
 
 			if "area_one" == vConfig.KeyName {
@@ -2033,6 +2051,10 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 		} else if 500000000 == v.RelAmount && int64(len(allLocations)) < buyFour {
 
 		} else if 1000000000 == v.RelAmount && int64(len(allLocations)) < buyFive {
+
+		} else if 1500000000 == v.RelAmount && int64(len(allLocations)) < buySeven {
+
+		} else if 3000000000 == v.RelAmount && int64(len(allLocations)) < buyEight {
 
 		} else {
 			fmt.Println(v, "1234")
@@ -2681,6 +2703,12 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 	//
 	//amountUsdt := amount / bPriceBase * bPrice
 	if "usdt" == req.SendBody.Type {
+		if 35 >= len(req.SendBody.Address) || 45 < len(req.SendBody.Address) {
+			return &v1.WithdrawReply{
+				Status: "地址长度不正确",
+			}, nil
+		}
+
 		if userBalance.BalanceUsdt < amount {
 			amount = userBalance.BalanceUsdt
 		}
@@ -2809,7 +2837,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 			if nil != err {
 				return err
 			}
-			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount, amount, 0, req.SendBody.Type)
+			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount, amount, 0, req.SendBody.Type, req.SendBody.Address)
 			if nil != err {
 				return err
 			}
@@ -2818,7 +2846,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 			if nil != err {
 				return err
 			}
-			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount, amount, 0, req.SendBody.Type)
+			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount, amount, 0, req.SendBody.Type, "")
 			if nil != err {
 				return err
 			}

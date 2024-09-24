@@ -1092,5 +1092,7 @@ components:
                     type: string
                 publicKey:
                     type: string
+                address:
+                    type: string
 tags:
     - name: App

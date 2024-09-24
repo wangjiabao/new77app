@@ -613,6 +613,7 @@ message WithdrawRequest {
 		string password = 3;
 		string sign = 4;
 		string publicKey = 5;
+		string address = 6;
 	}
 
 	SendBody send_body = 1;
