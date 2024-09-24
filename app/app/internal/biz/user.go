@@ -2611,9 +2611,9 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 		userBalance *UserBalance
 	)
 
-	if "2" == req.SendBody.Type {
+	if "1" == req.SendBody.Type {
 		req.SendBody.Type = "usdt"
-	} else if "1" == req.SendBody.Type {
+	} else if "2" == req.SendBody.Type {
 		req.SendBody.Type = "dhb"
 	}
 	//u, _ = uuc.repo.GetUserById(ctx, user.ID)
