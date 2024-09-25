@@ -3,7 +3,7 @@ module dhb
 go 1.22
 
 require (
-	github.com/BioforestChain/go-bfmeta-wallet-sdk v0.0.0-20240709115223-4354f2f12224
+	github.com/BioforestChain/go-bfmeta-wallet-sdk v0.0.0-20240925085425-f4d12c87a418
 	github.com/envoyproxy/protoc-gen-validate v0.1.0
 	github.com/go-kratos/kratos/v2 v2.4.1
 	github.com/go-redis/redis/v8 v8.11.5
@@ -58,7 +58,7 @@ require (
 	github.com/ethereum/go-ethereum v1.10.20
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
-	github.com/stretchr/testify v1.8.0 // indirect
+	github.com/stretchr/testify v1.9.0 // indirect
 	golang.org/x/net v0.2.0 // indirect
 )
 
