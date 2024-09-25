@@ -379,7 +379,7 @@ message UserInfoReply {
 		string created = 2;
 	}
 
-	repeated ListEthRecord ListEth = 117; // 购买记录
+	repeated ListEthRecord listEth = 117; // 购买记录
 	message ListEthRecord {
 		uint64 amount = 1; // 金额
 		string coinType = 3;

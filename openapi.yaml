@@ -967,7 +967,7 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/UserInfoReply_ListExchange'
-                ListEth:
+                listEth:
                     type: array
                     items:
                         $ref: '#/components/schemas/UserInfoReply_ListEthRecord'
