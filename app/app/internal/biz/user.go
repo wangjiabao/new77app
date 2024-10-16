@@ -460,12 +460,10 @@ func randString(n int) string {
 	return string(b)
 }
 
-func generateKeyBiw(word string) (string, string) {
-	// 启动
-	sdkClient := sdk.NewBCFWalletSDK()
-	var bCFSignUtil = sdkClient.NewBCFSignUtil("b")
-	defer sdkClient.Close()
+var sdkClient = sdk.NewBCFWalletSDK()
+var bCFSignUtil = sdkClient.NewBCFSignUtil("b")
 
+func generateKeyBiw(word string) (string, string) {
 	bCFSignUtil_CreateKeypair, _ := bCFSignUtil.CreateKeypair(word)
 	got, _ := bCFSignUtil.GetAddressFromPublicKeyString(bCFSignUtil_CreateKeypair.PublicKey, "b")
 	return bCFSignUtil_CreateKeypair.SecretKey, got
