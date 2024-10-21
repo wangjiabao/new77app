@@ -723,9 +723,11 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	if nil != err {
 		return nil, err
 	}
+
 	if 1 == myUser.IsDelete {
-		return nil, nil
+		return nil, errors.New(500, "AUTHORIZE_ERROR", "用户已删除")
 	}
+
 	//userInfo, err = uuc.uiRepo.GetUserInfoByUserId(ctx, myUser.ID)
 	//if nil != err {
 	//	return nil, err
