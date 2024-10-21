@@ -32,6 +32,7 @@ type User struct {
 	Amount          uint64
 	AmountBiw       uint64
 	Total           uint64
+	IsDelete        int64
 	CreatedAt       time.Time
 }
 
@@ -721,6 +722,9 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	myUser, err = uuc.repo.GetUserById(ctx, user.ID)
 	if nil != err {
 		return nil, err
+	}
+	if 1 == myUser.IsDelete {
+		return nil, nil
 	}
 	//userInfo, err = uuc.uiRepo.GetUserInfoByUserId(ctx, myUser.ID)
 	//if nil != err {

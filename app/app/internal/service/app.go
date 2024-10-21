@@ -95,6 +95,10 @@ func (a *AppService) EthAuthorize(ctx context.Context, req *v1.EthAuthorizeReque
 		return nil, err
 	}
 
+	if 1 == user.IsDelete {
+		return nil, errors.New(500, "AUTHORIZE_ERROR", "用户已删除")
+	}
+
 	claims := auth.CustomClaims{
 		UserId:   user.ID,
 		UserType: "user",
@@ -174,6 +178,10 @@ func (a *AppService) RecommendUpdate(ctx context.Context, req *v1.RecommendUpdat
 	user, err = a.uuc.GetUserByUserId(ctx, userId)
 	if nil != err {
 		return nil, err
+	}
+
+	if 1 == user.IsDelete {
+		return nil, errors.New(500, "AUTHORIZE_ERROR", "用户已删除")
 	}
 
 	var (
@@ -324,6 +332,10 @@ func (a *AppService) Exchange(ctx context.Context, req *v1.ExchangeRequest) (*v1
 		return nil, err
 	}
 
+	if 1 == user.IsDelete {
+		return nil, errors.New(500, "AUTHORIZE_ERROR", "用户已删除")
+	}
+
 	var (
 		address string
 		res     bool
@@ -374,6 +386,10 @@ func (a *AppService) Buy(ctx context.Context, req *v1.BuyRequest) (*v1.BuyReply,
 	user, err = a.uuc.GetUserByUserId(ctx, userId)
 	if nil != err {
 		return nil, err
+	}
+
+	if 1 == user.IsDelete {
+		return nil, errors.New(500, "AUTHORIZE_ERROR", "用户已删除")
 	}
 
 	//fmt.Println(user)
@@ -433,6 +449,10 @@ func (a *AppService) Withdraw(ctx context.Context, req *v1.WithdrawRequest) (*v1
 	user, err = a.uuc.GetUserByUserId(ctx, userId)
 	if nil != err {
 		return nil, err
+	}
+
+	if 1 == user.IsDelete {
+		return nil, errors.New(500, "AUTHORIZE_ERROR", "用户已删除")
 	}
 
 	var (
