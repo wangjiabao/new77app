@@ -2088,7 +2088,6 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 					break
 				}
 
-				myLastLocation = vMyLocations // 遍历到最后一个
 				var tmpLastLevel int64
 				// 1大区
 				if vMyLocations.Total >= vMyLocations.TotalTwo && vMyLocations.Total >= vMyLocations.TotalThree {
@@ -2153,6 +2152,8 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 			if stop {
 				continue // 跳过已经投资
 			}
+
+			myLastLocation = myLocations[0] // 最新一个
 		}
 
 		// 推荐人
@@ -2185,7 +2186,8 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 
 		// 顺位
 		var (
-			lastLocation *LocationNew
+			lastLocation     *LocationNew
+			isOriginLocation bool
 		)
 
 		// 有直推人占位且第一次入金，挂在直推人名下，按位查找
@@ -2237,7 +2239,14 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 			}
 
 			lastLocation = selectLocation
-		} else if nil != myLastLocation || nil == myRecommmendLocation { // 2复投，直接顺位 2直推无位置或一号用户无直推人，顺位补齐
+		} else if nil != myLastLocation { // 2复投，原点
+			lastLocation, err = uuc.locationRepo.GetLocationById(ctx, myLastLocation.Top)
+			if nil != err {
+				fmt.Println("查找错误，投资", myLastLocation, v)
+				continue
+			}
+			isOriginLocation = true
+		} else if nil == myRecommmendLocation { // 直推无位置或一号用户无直推人，顺位补齐
 
 			var (
 				firstLocation  *LocationNew
@@ -2425,12 +2434,19 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 
 			// 顺位
 			if nil != lastLocation {
-				err = uuc.locationRepo.UpdateLocationNewCount(ctx, lastLocation.ID, lastLocation.Count+1, v.RelAmount/100000)
-				if nil != err {
-					return err
+				if isOriginLocation && nil != myLastLocation {
+					err = uuc.locationRepo.UpdateLocationNewCountTwo(ctx, myLastLocation.Top, myLastLocation.TopNum, v.RelAmount/100000)
+					if nil != err {
+						return err
+					}
+				} else {
+					err = uuc.locationRepo.UpdateLocationNewCount(ctx, lastLocation.ID, lastLocation.Count+1, v.RelAmount/100000)
+					if nil != err {
+						return err
+					}
+					tmpTop = lastLocation.ID
+					tmpNum = lastLocation.Count + 1
 				}
-				tmpTop = lastLocation.ID
-				tmpNum = lastLocation.Count + 1
 
 				var (
 					currentTop    = lastLocation.Top
@@ -2461,16 +2477,21 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 				}
 			}
 
-			_, err = uuc.locationRepo.CreateLocationNew(ctx, &LocationNew{ // 占位
-				UserId:     v.UserId,
-				Status:     "running",
-				Current:    0,
-				CurrentMax: v.RelAmount * 25 / 10, // 2.5倍率
-				Num:        1,
-				Top:        tmpTop,
-				TopNum:     tmpNum,
-				LastLevel:  lastLevel,
-			}, v.RelAmount, int64(amount), user.Address, coinType)
+			if isOriginLocation && nil != myLastLocation {
+				_, err = uuc.locationRepo.UpdateLocationNew(ctx, myLastLocation.ID,
+					v.UserId, v.RelAmount*25/10, v.RelAmount, int64(amount), user.Address, coinType)
+			} else {
+				_, err = uuc.locationRepo.CreateLocationNew(ctx, &LocationNew{ // 占位
+					UserId:     v.UserId,
+					Status:     "running",
+					Current:    0,
+					CurrentMax: v.RelAmount * 25 / 10, // 2.5倍率
+					Num:        1,
+					Top:        tmpTop,
+					TopNum:     tmpNum,
+					LastLevel:  lastLevel,
+				}, v.RelAmount, int64(amount), user.Address, coinType)
+			}
 
 			if nil != err {
 				return err

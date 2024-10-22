@@ -91,8 +91,10 @@ type LocationRepo interface {
 	GetMyStopLocationsLast(ctx context.Context, userId int64) ([]*LocationNew, error)
 	GetLocationDailyYesterday(ctx context.Context, day int) ([]*LocationNew, error)
 	UpdateLocationNewCount(ctx context.Context, id int64, count int64, total int64) error
+	UpdateLocationNewCountTwo(ctx context.Context, id int64, count int64, total int64) error
 	UpdateLocationNewTotal(ctx context.Context, id int64, count int64, total int64) error
 	CreateLocationNew(ctx context.Context, rel *LocationNew, amount int64, amountB int64, address string, coinType string) (*LocationNew, error)
+	UpdateLocationNew(ctx context.Context, id int64, userId int64, currentMax int64, amount int64, amountB int64, address string, coinType string) (*LocationNew, error)
 }
 
 func NewRecordUseCase(

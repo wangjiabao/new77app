@@ -116,6 +116,35 @@ func (lr *LocationRepo) GetLocationLast(ctx context.Context) (*biz.Location, err
 	}, nil
 }
 
+// UpdateLocationNewCountTwo .
+func (lr *LocationRepo) UpdateLocationNewCountTwo(ctx context.Context, id int64, count int64, total int64) error {
+
+	if 1 == count {
+		res := lr.data.DB(ctx).Table("location_new").
+			Where("id=?", id).
+			Updates(map[string]interface{}{"total": gorm.Expr("total + ?", total)})
+		if 0 == res.RowsAffected || res.Error != nil {
+			return res.Error
+		}
+	} else if 2 == count {
+		res := lr.data.DB(ctx).Table("location_new").
+			Where("id=?", id).
+			Updates(map[string]interface{}{"total_two": gorm.Expr("total_two + ?", total)})
+		if 0 == res.RowsAffected || res.Error != nil {
+			return res.Error
+		}
+	} else if 3 == count {
+		res := lr.data.DB(ctx).Table("location_new").
+			Where("id=?", id).
+			Updates(map[string]interface{}{"total_three": gorm.Expr("total_three + ?", total)})
+		if 0 == res.RowsAffected || res.Error != nil {
+			return res.Error
+		}
+	}
+
+	return nil
+}
+
 // UpdateLocationNewCount .
 func (lr *LocationRepo) UpdateLocationNewCount(ctx context.Context, id int64, count int64, total int64) error {
 
@@ -171,6 +200,52 @@ func (lr *LocationRepo) UpdateLocationNewTotal(ctx context.Context, id int64, co
 		}
 	}
 	return nil
+}
+
+// UpdateLocationNew .
+func (lr *LocationRepo) UpdateLocationNew(ctx context.Context, id int64, userId int64, currentMax int64, amount int64, amountB int64, address string, coinType string) (*biz.LocationNew, error) {
+	res := lr.data.DB(ctx).Table("location_new").
+		Where("id=?", id).
+		Updates(map[string]interface{}{
+			"status":      "running",
+			"num":         1,
+			"current":     0,
+			"current_max": currentMax,
+			"stop_date":   "0000-00-00 00:00:00",
+			"usdt":        amount,
+		})
+	if 0 == res.RowsAffected || res.Error != nil {
+		return nil, errors.New(500, "UPDATE_LOCATION_ERROR", "占位信息创建失败")
+	}
+
+	var userBalanceRecode UserBalanceRecord
+	userBalanceRecode.Balance = 0
+	userBalanceRecode.UserId = userId
+	userBalanceRecode.Type = "deposit"
+	userBalanceRecode.CoinType = coinType
+	userBalanceRecode.Amount = amount
+	res = lr.data.DB(ctx).Table("user_balance_record").Create(&userBalanceRecode)
+	if res.Error != nil {
+		return nil, errors.New(500, "CREATE_LOCATION_ERROR", "占位信息创建失败")
+	}
+
+	var (
+		err    error
+		reward Reward
+	)
+
+	reward.UserId = userId
+	reward.Amount = amountB
+	reward.Address = address
+	reward.Type = coinType // 本次分红的行为类型
+	reward.TypeRecordId = userBalanceRecode.ID
+	reward.Reason = "buy" // 给我分红的理由
+	err = lr.data.DB(ctx).Table("reward").Create(&reward).Error
+	if err != nil {
+		return nil, errors.New(500, "CREATE_LOCATION_ERROR", "占位信息创建失败")
+	}
+
+	return nil, nil
 }
 
 // CreateLocationNew .
@@ -443,14 +518,17 @@ func (lr *LocationRepo) GetLocationById(ctx context.Context, id int64) (*biz.Loc
 	}
 
 	return &biz.LocationNew{
-		ID:         location.ID,
-		UserId:     location.UserId,
-		Status:     location.Status,
-		Current:    location.Current,
-		CurrentMax: location.CurrentMax,
-		StopDate:   location.StopDate,
-		Top:        location.Top,
-		TopNum:     location.TopNum,
+		ID:            location.ID,
+		UserId:        location.UserId,
+		Status:        location.Status,
+		Current:       location.Current,
+		CurrentMax:    location.CurrentMax,
+		StopDate:      location.StopDate,
+		Top:           location.Top,
+		TopNum:        location.TopNum,
+		Num:           location.Num,
+		CurrentMaxNew: location.CurrentMaxNew,
+		Count:         location.Count,
 	}, nil
 }
 
