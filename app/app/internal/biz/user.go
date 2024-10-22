@@ -2200,8 +2200,13 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 
 				tmpIds := make([]int64, 0)
 				tmpIds = append(tmpIds, myRecommmendLocation.ID)
-				for _, vTmpId := range tmpIds { // 小于3个人
+
+				i := 0
+				for i < len(tmpIds) { // 小于3个人
 					// 查找
+					vTmpId := tmpIds[i]
+					fmt.Println("Processing:", vTmpId)
+
 					var (
 						topLocations []*LocationNew
 					)
@@ -2227,7 +2232,9 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 					if nil != selectLocation {
 						break
 					}
+
 					//
+					i++
 				}
 
 				if tmpSopFor {
@@ -2262,7 +2269,13 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 				if 3 <= firstLocation.Count {
 					tmpIds := make([]int64, 0)
 					tmpIds = append(tmpIds, firstLocation.ID)
-					for _, vTmpId := range tmpIds { // 小于3个人
+
+					i := 0
+					for i < len(tmpIds) { // 小于3个人
+						// 查找
+						vTmpId := tmpIds[i]
+						fmt.Println("Processing2:", vTmpId)
+
 						// 查找
 						var (
 							topLocations []*LocationNew
@@ -2290,6 +2303,7 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 							break
 						}
 						//
+						i++
 					}
 
 					if tmpSopFor {
