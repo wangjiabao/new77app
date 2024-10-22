@@ -2207,6 +2207,9 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 					vTmpId := tmpIds[i]
 					fmt.Println("Processing:", vTmpId)
 
+					//
+					i++
+					
 					var (
 						topLocations []*LocationNew
 					)
@@ -2232,9 +2235,6 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 					if nil != selectLocation {
 						break
 					}
-
-					//
-					i++
 				}
 
 				if tmpSopFor {
@@ -2276,6 +2276,9 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 						vTmpId := tmpIds[i]
 						fmt.Println("Processing2:", vTmpId)
 
+						//
+						i++
+
 						// 查找
 						var (
 							topLocations []*LocationNew
@@ -2302,8 +2305,6 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 						if nil != selectLocation {
 							break
 						}
-						//
-						i++
 					}
 
 					if tmpSopFor {
