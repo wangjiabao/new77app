@@ -207,12 +207,14 @@ func (lr *LocationRepo) UpdateLocationNew(ctx context.Context, id int64, userId 
 	res := lr.data.DB(ctx).Table("location_new").
 		Where("id=?", id).
 		Updates(map[string]interface{}{
-			"status":      "running",
-			"num":         1,
-			"current":     0,
-			"current_max": currentMax,
-			"stop_date":   "0000-00-00 00:00:00",
-			"usdt":        amount,
+			"status":          "running",
+			"num":             1,
+			"current":         0,
+			"current_max":     currentMax,
+			"stop_date":       "0000-00-00 00:00:00",
+			"usdt":            amount,
+			"biw":             0,
+			"current_max_new": 0,
 		})
 	if 0 == res.RowsAffected || res.Error != nil {
 		return nil, errors.New(500, "UPDATE_LOCATION_ERROR", "占位信息创建失败")
