@@ -2209,7 +2209,7 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 
 					//
 					i++
-					
+
 					var (
 						topLocations []*LocationNew
 					)
@@ -2388,7 +2388,7 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 										}
 
 										if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
-											err = uuc.locationRepo.UpdateLocationNewNew(ctx, tmpMyTopUserRecommendUserLocationLast.ID, tmpStatus, tmpMyRecommendAmount, tmpMaxNew, bAmount, tmpStopDate) // 分红占位数据修改
+											err = uuc.locationRepo.UpdateLocationNewNew(ctx, tmpMyTopUserRecommendUserLocationLast.ID, tmpMyTopUserRecommendUserLocationLast.UserId, tmpStatus, tmpMyRecommendAmount, tmpMaxNew, bAmount, tmpStopDate) // 分红占位数据修改
 											if nil != err {
 												return err
 											}
