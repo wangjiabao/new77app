@@ -33,6 +33,7 @@ type User struct {
 	AmountBiw       uint64
 	Total           uint64
 	IsDelete        int64
+	Out             int64
 	CreatedAt       time.Time
 }
 
@@ -591,7 +592,6 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		//userInfo      *UserInfo
 		configs               []*Config
 		locations             []*LocationNew
-		stopCount             int64
 		userBalance           *UserBalance
 		myLocations           []*v1.UserInfoReply_List
 		bPrice                int64
@@ -782,9 +782,9 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 				locationCurrentMaxSub = fmt.Sprintf("%.2f", float64(v.CurrentMax-v.Current)/float64(100000))
 			}
 
-			if "stop" == v.Status {
-				stopCount++
-			}
+			//if "stop" == v.Status {
+			//	stopCount++
+			//}
 
 			myLocations = append(myLocations, &v1.UserInfoReply_List{
 				Current:              fmt.Sprintf("%.2f", float64(v.Current)/float64(100000)),
@@ -1195,7 +1195,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		WithdrawList:          withdrawList,
 		InviteUserAddress:     inviteUserAddress,
 		InviteUrl:             encodeString,
-		Count:                 stopCount,
+		Count:                 myUser.Out,
 		LocationReward:        fmt.Sprintf("%.2f", float64(userBalance.LocationTotal)/float64(100000)) + "BIW",
 		RecommendReward:       fmt.Sprintf("%.2f", float64(userBalance.RecommendTotal)/float64(100000)) + "BIW",
 		FourReward:            fmt.Sprintf("%.2f", float64(userBalance.FourTotal)/float64(100000)),
