@@ -535,7 +535,7 @@ func (lr *LocationRepo) GetLocationById(ctx context.Context, id int64) (*biz.Loc
 }
 
 // UpdateLocationNewNew .
-func (lr *LocationRepo) UpdateLocationNewNew(ctx context.Context, id int64, userId int64, status string, current int64, amountB int64, biw int64, stopDate time.Time) error {
+func (lr *LocationRepo) UpdateLocationNewNew(ctx context.Context, id int64, userId int64, status string, current int64, amountB int64, biw int64, stopDate time.Time, usdt int64) error {
 
 	if "stop" == status {
 		res := lr.data.DB(ctx).Table("location_new").
@@ -550,6 +550,19 @@ func (lr *LocationRepo) UpdateLocationNewNew(ctx context.Context, id int64, user
 			Updates(map[string]interface{}{"out": gorm.Expr("out + ?", 1)})
 		if 0 == res.RowsAffected || res.Error != nil {
 			return res.Error
+		}
+
+		var reward Reward
+		reward.UserId = userId
+		reward.Amount = usdt
+		reward.BalanceRecordId = id
+		reward.Type = "out"   // 本次分红的行为类型
+		reward.Reason = "out" // 给我分红的理由
+		reward.ReasonLocationId = id
+		var err error
+		err = lr.data.DB(ctx).Table("reward").Create(&reward).Error
+		if err != nil {
+			return err
 		}
 	} else {
 		res := lr.data.DB(ctx).Table("location_new").
