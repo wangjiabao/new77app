@@ -1913,11 +1913,12 @@ func (uuc *UserUseCase) Buy(ctx context.Context, req *v1.BuyRequest, user *User)
 	if !res {
 		if 1 == code {
 			return &v1.BuyReply{
-				Status: "已认购节点",
+				Status: "已认购",
 			}, nil
 		} else {
+			fmt.Println(user.ID, "buy 错误", err)
 			return &v1.BuyReply{
-				Status: "系统异常，稍后重试",
+				Status: "已认购",
 			}, nil
 		}
 	}
