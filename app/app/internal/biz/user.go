@@ -222,6 +222,7 @@ type UserBalanceRepo interface {
 	DepositLast(ctx context.Context, userId int64, lastAmount int64, locationId int64) (int64, error)
 	DepositDhb(ctx context.Context, userId int64, amount int64) (int64, error)
 	GetUserBalance(ctx context.Context, userId int64) (*UserBalance, error)
+	GetRewardFourYes(ctx context.Context) (*Reward, error)
 	GetUserRewardByUserId(ctx context.Context, userId int64) ([]*Reward, error)
 	GetLocationsToday(ctx context.Context) ([]*LocationNew, error)
 	GetUserRewardByUserIds(ctx context.Context, userIds ...int64) (map[int64]*UserSortRecommendReward, error)
@@ -1073,11 +1074,8 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	var (
 		day                    = -1
 		userLocationsYes       []*LocationNew
-		userLocationsBef       []*LocationNew
 		rewardLocationYes      int64
 		totalRewardYes         int64
-		rewardLocationBef      int64
-		totalRewardBef         int64
 		fourUserRecommendTotal map[int64]int64
 	)
 
@@ -1131,18 +1129,16 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		return keyValuePairs[i].Value > keyValuePairs[j].Value
 	})
 
-	userLocationsBef, err = uuc.locationRepo.GetLocationDailyYesterday(ctx, day-1)
-	for _, userLocationBef := range userLocationsBef {
-		rewardLocationBef += userLocationBef.Usdt
+	// 全网前天
+	var (
+		rewardFourYes *Reward
+	)
+	totalRewardYes = rewardLocationYes / 100 * total
+	rewardFourYes, err = uuc.ubRepo.GetRewardFourYes(ctx) // 推荐人奖励
+	if nil == err && nil != rewardFourYes {
+		totalRewardYes += rewardFourYes.Amount
 	}
-	if rewardLocationYes > 0 {
-		totalRewardYes = rewardLocationYes / 100 * total
-	}
-	if rewardLocationBef > 0 {
-		totalRewardBef = rewardLocationBef / 100 / 100 * 30 * total
-	}
-
-	totalReward := rewardLocationYes/100/100*70*total + rewardLocationBef/100/100*30*total
+	totalReward := totalRewardYes / 100 * 70
 
 	fourList := make([]*v1.UserInfoReply_ListFour, 0)
 
@@ -1224,8 +1220,8 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		RecommendReward:       fmt.Sprintf("%.2f", float64(userBalance.RecommendTotal)/float64(100000)) + "BIW",
 		FourReward:            fmt.Sprintf("%.2f", float64(userBalance.FourTotal)/float64(100000)),
 		AreaReward:            fmt.Sprintf("%.2f", float64(userBalance.AreaTotal)/float64(100000)) + "BIW",
-		FourRewardPool:        fmt.Sprintf("%.2f", float64(totalRewardYes)/float64(100000)),
-		FourRewardPoolYes:     fmt.Sprintf("%.2f", float64(totalRewardBef)/float64(100000)),
+		FourRewardPool:        fmt.Sprintf("%.2f", float64(rewardLocationYes/100*total)/float64(100000)),
+		FourRewardPoolYes:     fmt.Sprintf("%.2f", float64(totalRewardYes/100*30)/float64(100000)),
 		Four:                  fourList,
 		AreaMax:               areaMax,
 		AreaMin:               areaMin,

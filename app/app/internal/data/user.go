@@ -384,6 +384,30 @@ func (u *UserRepo) InRecordNew(ctx context.Context, userId int64, address string
 	return nil
 }
 
+// GetRewardFourYes .
+func (ub *UserBalanceRepo) GetRewardFourYes(ctx context.Context) (*biz.Reward, error) {
+	var reward *Reward
+	if err := ub.data.db.Where("user_id=? and reason=?", 999999, "four_yes").Order("id desc").Table("reward").First(&reward).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, errors.New(500, "REWARD ERROR", err.Error())
+	}
+	return &biz.Reward{
+		ID:               reward.ID,
+		UserId:           reward.UserId,
+		Amount:           reward.Amount,
+		BalanceRecordId:  reward.BalanceRecordId,
+		Type:             reward.Type,
+		TypeRecordId:     reward.TypeRecordId,
+		Reason:           reward.Reason,
+		ReasonLocationId: reward.ReasonLocationId,
+		LocationType:     reward.LocationType,
+		CreatedAt:        reward.CreatedAt,
+	}, nil
+}
+
 // GetUserById .
 func (u *UserRepo) GetUserById(ctx context.Context, Id int64) (*biz.User, error) {
 	var user User
