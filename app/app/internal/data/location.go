@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"dhb/app/app/internal/biz"
+	"fmt"
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
@@ -712,9 +713,9 @@ func (lr *LocationRepo) GetLocationDailyYesterday(ctx context.Context, day int) 
 	res := make([]*biz.LocationNew, 0)
 	instance := lr.data.db.Table("location_new")
 
-	now := time.Now().UTC()
-	if now.Hour() < 16 {
-		now = now.AddDate(0, 0, day)
+	now := time.Now().UTC().AddDate(0, 0, day)
+	if now.Hour() >= 16 {
+		now = now.AddDate(0, 0, 1)
 	}
 
 	// 16点之后执行
@@ -728,9 +729,9 @@ func (lr *LocationRepo) GetLocationDailyYesterday(ctx context.Context, day int) 
 	//测试 2024-10-28 13:36:18.048732014 +0000 UTC m=+18.455291516 2024-10-27 13:36:18.048727039 +0000 UTC
 	//测试 2024-10-27 13:36:18.048727039 +0000 UTC 2024-10-28 13:36:18.048727039 +0000 UTC
 	//测试 2024-10-27 16:00:00 +0000 UTC 2024-10-28 16:00:00 +0000 UTC
-	//fmt.Println("测试", time.Now(), now)
-	//fmt.Println("测试", startDate, endDate)
-	//fmt.Println("测试", todayStart, todayEnd)
+	fmt.Println("测试", time.Now(), now)
+	fmt.Println("测试", startDate, endDate)
+	fmt.Println("测试", todayStart, todayEnd)
 	if err := instance.Order("id desc").Find(&locations).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return res, errors.NotFound("LOCATION_NOT_FOUND", "location not found")
