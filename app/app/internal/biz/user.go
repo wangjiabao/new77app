@@ -1132,11 +1132,13 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	// 全网前天
 	var (
 		rewardFourYes *Reward
+		yesAmount     int64
 	)
 	totalRewardYes = rewardLocationYes / 100 * total
 	rewardFourYes, err = uuc.ubRepo.GetRewardFourYes(ctx) // 推荐人奖励
 	if nil == err && nil != rewardFourYes {
 		totalRewardYes += rewardFourYes.Amount
+		yesAmount = rewardFourYes.Amount
 	}
 	totalReward := totalRewardYes / 100 * 70
 
@@ -1221,7 +1223,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		FourReward:            fmt.Sprintf("%.2f", float64(userBalance.FourTotal)/float64(100000)),
 		AreaReward:            fmt.Sprintf("%.2f", float64(userBalance.AreaTotal)/float64(100000)) + "BIW",
 		FourRewardPool:        fmt.Sprintf("%.2f", float64(rewardLocationYes/100*total)/float64(100000)),
-		FourRewardPoolYes:     fmt.Sprintf("%.2f", float64(totalRewardYes/100*30)/float64(100000)),
+		FourRewardPoolYes:     fmt.Sprintf("%.2f", float64(yesAmount)/float64(100000)),
 		Four:                  fourList,
 		AreaMax:               areaMax,
 		AreaMin:               areaMin,
@@ -2229,10 +2231,12 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 
 		// 有直推人占位且第一次入金，挂在直推人名下，按位查找
 		if nil != myRecommmendLocation && nil == myLastLocation {
+			fmt.Println("认购用户：", v.UserId)
 			var (
 				selectLocation *LocationNew // 选中的
 			)
 			if 3 <= myRecommmendLocation.Count {
+				fmt.Println("推荐人下面数量", myRecommmendLocation.Count)
 				var tmpSopFor bool
 
 				tmpIds := make([]int64, 0)
@@ -2250,7 +2254,7 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 					var (
 						topLocations []*LocationNew
 					)
-					topLocations, err = uuc.locationRepo.GetLocationsByTop(ctx, vTmpId)
+					topLocations, err = uuc.locationRepo.GetLocationsByTopTwo(ctx, vTmpId)
 					if nil != err {
 						break
 					}
@@ -2277,13 +2281,13 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 				if tmpSopFor {
 					continue
 				}
-
 			} else {
 				selectLocation = myRecommmendLocation
 			}
 
 			lastLocation = selectLocation
 		} else if nil != myLastLocation { // 2复投，原点
+			fmt.Println("复投,认购用户：", v.UserId)
 			lastLocation, err = uuc.locationRepo.GetLocationById(ctx, myLastLocation.Top)
 			if nil != err {
 				fmt.Println("查找错误，投资", myLastLocation, v)
@@ -2291,7 +2295,7 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 			}
 			isOriginLocation = true
 		} else if nil == myRecommmendLocation { // 直推无位置或一号用户无直推人，顺位补齐
-
+			fmt.Println("无推荐人,认购用户：", v.UserId)
 			var (
 				firstLocation  *LocationNew
 				tmpSopFor      bool
@@ -2320,7 +2324,7 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 						var (
 							topLocations []*LocationNew
 						)
-						topLocations, err = uuc.locationRepo.GetLocationsByTop(ctx, vTmpId)
+						topLocations, err = uuc.locationRepo.GetLocationsByTopTwo(ctx, vTmpId)
 						if nil != err {
 							break
 						}
@@ -2487,11 +2491,13 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 			// 顺位
 			if nil != lastLocation {
 				if isOriginLocation && nil != myLastLocation {
+					fmt.Println("复投", v.UserId)
 					err = uuc.locationRepo.UpdateLocationNewCountTwo(ctx, myLastLocation.Top, myLastLocation.TopNum, v.RelAmount/100000)
 					if nil != err {
 						return err
 					}
 				} else {
+					fmt.Println("新位置", v.UserId, lastLocation.ID, lastLocation.Count+1)
 					err = uuc.locationRepo.UpdateLocationNewCount(ctx, lastLocation.ID, lastLocation.Count+1, v.RelAmount/100000)
 					if nil != err {
 						return err
