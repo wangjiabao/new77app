@@ -59,7 +59,7 @@ type EthUserRecordRepo interface {
 type LocationRepo interface {
 	GetLocationById(ctx context.Context, id int64) (*LocationNew, error)
 	UpdateLocationNewTotalSub(ctx context.Context, id int64, count int64, total int64) error
-	UpdateLocationNewNew(ctx context.Context, id int64, userId int64, status string, current int64, amountB int64, biw int64, stopDate time.Time) error
+	UpdateLocationNewNew(ctx context.Context, id int64, userId int64, status string, current int64, amountB int64, biw int64, stopDate time.Time, usdt int64) error
 	GetMyLocationLastRunning(ctx context.Context, userId int64) (*LocationNew, error)
 	GetLocationsNewByUserId(ctx context.Context, userId int64) ([]*LocationNew, error)
 	GetAllLocationsNew(ctx context.Context, currentMax int64) ([]*LocationNew, error)
@@ -71,6 +71,7 @@ type LocationRepo interface {
 	GetMyLocationRunningLast(ctx context.Context, userId int64) (*Location, error)
 	GetLocationsByUserId(ctx context.Context, userId int64) ([]*LocationNew, error)
 	GetLocationsByTop(ctx context.Context, top int64) ([]*LocationNew, error)
+	GetLocationsByTopTwo(ctx context.Context, top int64) ([]*LocationNew, error)
 	GetLocationFirst(ctx context.Context) (*LocationNew, error)
 	GetLocationsByUserId2(ctx context.Context, userId int64) ([]*LocationNew, error)
 	GetAllLocationsCount(ctx context.Context, usdt int64) int64

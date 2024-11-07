@@ -535,7 +535,7 @@ func (lr *LocationRepo) GetLocationById(ctx context.Context, id int64) (*biz.Loc
 }
 
 // UpdateLocationNewNew .
-func (lr *LocationRepo) UpdateLocationNewNew(ctx context.Context, id int64, userId int64, status string, current int64, amountB int64, biw int64, stopDate time.Time) error {
+func (lr *LocationRepo) UpdateLocationNewNew(ctx context.Context, id int64, userId int64, status string, current int64, amountB int64, biw int64, stopDate time.Time, usdt int64) error {
 
 	if "stop" == status {
 		res := lr.data.DB(ctx).Table("location_new").
@@ -550,6 +550,19 @@ func (lr *LocationRepo) UpdateLocationNewNew(ctx context.Context, id int64, user
 			Updates(map[string]interface{}{"out": gorm.Expr("out + ?", 1)})
 		if 0 == res.RowsAffected || res.Error != nil {
 			return res.Error
+		}
+
+		var reward Reward
+		reward.UserId = userId
+		reward.Amount = usdt
+		reward.BalanceRecordId = id
+		reward.Type = "out"   // 本次分红的行为类型
+		reward.Reason = "out" // 给我分红的理由
+		reward.ReasonLocationId = id
+		var err error
+		err = lr.data.DB(ctx).Table("reward").Create(&reward).Error
+		if err != nil {
+			return err
 		}
 	} else {
 		res := lr.data.DB(ctx).Table("location_new").
@@ -648,6 +661,39 @@ func (lr *LocationRepo) GetLocationsByTop(ctx context.Context, top int64) ([]*bi
 	return res, nil
 }
 
+// GetLocationsByTopTwo .
+func (lr *LocationRepo) GetLocationsByTopTwo(ctx context.Context, top int64) ([]*biz.LocationNew, error) {
+	var locations []*LocationNew
+	res := make([]*biz.LocationNew, 0)
+	if err := lr.data.db.Table("location_new").
+		Where("top=?", top).
+		Order("id asc").Limit(3).Find(&locations).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return res, errors.NotFound("LOCATION_NOT_FOUND", "location not found")
+		}
+
+		return nil, errors.New(500, "LOCATION ERROR", err.Error())
+	}
+
+	for _, location := range locations {
+		res = append(res, &biz.LocationNew{
+			ID:            location.ID,
+			UserId:        location.UserId,
+			Num:           location.Num,
+			Current:       location.Current,
+			CurrentMax:    location.CurrentMax,
+			CurrentMaxNew: location.CurrentMaxNew,
+			Status:        location.Status,
+			StopDate:      location.StopDate,
+			Count:         location.Count,
+			Top:           location.Top,
+			TopNum:        location.TopNum,
+		})
+	}
+
+	return res, nil
+}
+
 // GetLocationsByUserId2 .
 func (lr *LocationRepo) GetLocationsByUserId2(ctx context.Context, userId int64) ([]*biz.LocationNew, error) {
 	var locations []*LocationNew
@@ -699,8 +745,12 @@ func (lr *LocationRepo) GetLocationDailyYesterday(ctx context.Context, day int) 
 	res := make([]*biz.LocationNew, 0)
 	instance := lr.data.db.Table("location_new")
 
-	// 16点之后执行
 	now := time.Now().UTC().AddDate(0, 0, day)
+	if now.Hour() >= 16 {
+		now = now.AddDate(0, 0, 1)
+	}
+
+	// 16点之后执行
 	startDate := now
 	endDate := now.AddDate(0, 0, 1)
 	todayStart := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 16, 0, 0, 0, time.UTC)
@@ -708,6 +758,12 @@ func (lr *LocationRepo) GetLocationDailyYesterday(ctx context.Context, day int) 
 
 	instance = instance.Where("created_at>=?", todayStart)
 	instance = instance.Where("created_at<?", todayEnd)
+	//测试 2024-10-28 13:36:18.048732014 +0000 UTC m=+18.455291516 2024-10-27 13:36:18.048727039 +0000 UTC
+	//测试 2024-10-27 13:36:18.048727039 +0000 UTC 2024-10-28 13:36:18.048727039 +0000 UTC
+	//测试 2024-10-27 16:00:00 +0000 UTC 2024-10-28 16:00:00 +0000 UTC
+	//fmt.Println("测试", time.Now(), now)
+	//fmt.Println("测试", startDate, endDate)
+	//fmt.Println("测试", todayStart, todayEnd)
 	if err := instance.Order("id desc").Find(&locations).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return res, errors.NotFound("LOCATION_NOT_FOUND", "location not found")
