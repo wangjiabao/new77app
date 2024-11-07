@@ -467,8 +467,8 @@ var bCFSignUtil = sdkClient.NewBCFSignUtil("b")
 
 func generateKeyBiw(word string) (string, string) {
 	bCFSignUtil_CreateKeypair, _ := bCFSignUtil.CreateKeypair(word)
-	got, _ := bCFSignUtil.GetAddressFromPublicKeyString(bCFSignUtil_CreateKeypair.PublicKey, "b")
-	return bCFSignUtil_CreateKeypair.SecretKey, got
+	got, _ := bCFSignUtil.GetAddressFromPublicKey(bCFSignUtil_CreateKeypair.PublicKey.StringBuffer, "b")
+	return bCFSignUtil_CreateKeypair.SecretKey.Value, got
 }
 
 func generateKey() (string, string, error) {

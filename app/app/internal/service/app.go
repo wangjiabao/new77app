@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	sdk "github.com/BioforestChain/go-bfmeta-wallet-sdk"
+	"github.com/BioforestChain/go-bfmeta-wallet-sdk/entity/jbase"
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -62,12 +63,7 @@ func (a *AppService) EthAuthorize(ctx context.Context, req *v1.EthAuthorizeReque
 		err     error
 	)
 
-	var (
-		str1 = []byte(req.SendBody.Sign)
-		str2 = []byte(req.SendBody.PublicKey)
-	)
-
-	res, address, err = verifySig2(str1, str2, []byte("login"))
+	res, address, err = verifySig2(req.SendBody.Sign, req.SendBody.PublicKey, "login")
 	if !res || nil != err || 0 >= len(address) || userAddress != address {
 		return nil, errors.New(500, "AUTHORIZE_ERROR", "地址签名错误")
 	}
@@ -187,11 +183,9 @@ func (a *AppService) RecommendUpdate(ctx context.Context, req *v1.RecommendUpdat
 	var (
 		address string
 		res     bool
-		str1    = []byte(req.SendBody.Sign)
-		str2    = []byte(req.SendBody.PublicKey)
 	)
 
-	res, address, err = verifySig2(str1, str2, []byte("login"))
+	res, address, err = verifySig2(req.SendBody.Sign, req.SendBody.PublicKey, "login")
 	if !res || nil != err || 0 >= len(address) || user.Address != address {
 		return nil, errors.New(500, "AUTHORIZE_ERROR", "地址签名错误")
 	}
@@ -339,11 +333,9 @@ func (a *AppService) Exchange(ctx context.Context, req *v1.ExchangeRequest) (*v1
 	var (
 		address string
 		res     bool
-		str1    = []byte(req.SendBody.Sign)
-		str2    = []byte(req.SendBody.PublicKey)
 	)
 
-	res, address, err = verifySig2(str1, str2, []byte("login"))
+	res, address, err = verifySig2(req.SendBody.Sign, req.SendBody.PublicKey, "login")
 	if !res || nil != err || 0 >= len(address) || user.Address != address {
 		return nil, errors.New(500, "AUTHORIZE_ERROR", "地址签名错误")
 	}
@@ -393,13 +385,7 @@ func (a *AppService) Buy(ctx context.Context, req *v1.BuyRequest) (*v1.BuyReply,
 	}
 
 	//fmt.Println(user)
-
-	var (
-		str1 = []byte(req.SendBody.Sign)
-		str2 = []byte(req.SendBody.PublicKey)
-	)
-
-	res, address, err = verifySig2(str1, str2, []byte("login"))
+	res, address, err = verifySig2(req.SendBody.Sign, req.SendBody.PublicKey, "login")
 	if !res || nil != err || 0 >= len(address) || address != user.Address {
 		return nil, errors.New(500, "AUTHORIZE_ERROR", "地址签名错误")
 	}
@@ -458,11 +444,9 @@ func (a *AppService) Withdraw(ctx context.Context, req *v1.WithdrawRequest) (*v1
 	var (
 		address string
 		res     bool
-		str1    = []byte(req.SendBody.Sign)
-		str2    = []byte(req.SendBody.PublicKey)
 	)
 
-	res, address, err = verifySig2(str1, str2, []byte("login"))
+	res, address, err = verifySig2(req.SendBody.Sign, req.SendBody.PublicKey, "login")
 	if !res || nil != err || 0 >= len(address) || user.Address != address {
 		return nil, errors.New(500, "AUTHORIZE_ERROR", "地址签名错误")
 	}
@@ -1005,7 +989,7 @@ func verifySig(sigHex string, msg []byte) (bool, string) {
 var sdkClient = sdk.NewBCFWalletSDK()
 var bCFSignUtil = sdkClient.NewBCFSignUtil("b")
 
-func verifySig2(sigHex []byte, publicKey []byte, msg []byte) (bool, string, error) {
+func verifySig2(sigHex string, publicKey string, msg string) (bool, string, error) {
 	// 创建keyPair
 	//bCFSignUtil_CreateKeypair, _ := bCFSignUtil.CreateKeypair("abcd bcdd bcdva ccd")
 	//address2, _ := bCFSignUtil.GetAddressFromPublicKeyString(bCFSignUtil_CreateKeypair.PublicKey, "b")
@@ -1021,12 +1005,15 @@ func verifySig2(sigHex []byte, publicKey []byte, msg []byte) (bool, string, erro
 		res     bool
 	)
 	// 验证签名
-	res, err = bCFSignUtil.DetachedVeriy(msg, sigHex, publicKey)
+	msgTmp := jbase.NewUtf8StringBuffer(msg)
+	sigHexTmp := jbase.NewUtf8StringBuffer(sigHex)
+	publicKeyTmp := jbase.NewUtf8StringBuffer(publicKey)
+	res, err = bCFSignUtil.DetachedVerify(msgTmp.StringBuffer, sigHexTmp.StringBuffer, publicKeyTmp.StringBuffer)
 	if !res {
 		return res, address, err
 	}
 
-	address, err = bCFSignUtil.GetAddressFromPublicKey(publicKey, "b")
+	address, err = bCFSignUtil.GetAddressFromPublicKey(publicKeyTmp.StringBuffer, "b")
 	if nil != err {
 		return res, address, err
 	}
