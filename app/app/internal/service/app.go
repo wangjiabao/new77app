@@ -1008,7 +1008,9 @@ func verifySig2(sigHex string, publicKey string, msg string) (bool, string, erro
 	msgTmp := jbase.NewUtf8StringBuffer(msg)
 	sigHexTmp := jbase.NewUtf8StringBuffer(sigHex)
 	publicKeyTmp := jbase.NewUtf8StringBuffer(publicKey)
+	fmt.Println(msg, sigHex, publicKey)
 	res, err = bCFSignUtil.DetachedVerify(msgTmp.StringBuffer, sigHexTmp.StringBuffer, publicKeyTmp.StringBuffer)
+	fmt.Println(222, res, err)
 	if !res {
 		return res, address, err
 	}
@@ -1017,6 +1019,7 @@ func verifySig2(sigHex string, publicKey string, msg string) (bool, string, erro
 	if nil != err {
 		return res, address, err
 	}
+	fmt.Println(333, res, address, err)
 
 	if 0 > len(address) {
 		return false, "", nil
