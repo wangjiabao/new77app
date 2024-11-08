@@ -1019,7 +1019,7 @@ func verifySig2(sigHex string, publicKey string, msg string) (bool, string, erro
 	if nil != err {
 		return res, address, err
 	}
-	fmt.Println(333, res, address, err)
+	//fmt.Println(333, res, address, err)
 
 	if 0 > len(address) {
 		return false, "", nil
