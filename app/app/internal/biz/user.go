@@ -968,7 +968,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		if 0 >= vUserRewards.TypeRecordId {
 			continue
 		}
-		tmpUserIds[vUserRewards.TypeRecordId] = vUserRewards.UserId
+		tmpUserIds[vUserRewards.TypeRecordId] = vUserRewards.TypeRecordId
 	}
 
 	var (
@@ -992,7 +992,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 				}
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "BIW",
+					Reward:    fmt.Sprintf("%.4f", float64(vUserReward.Amount)/float64(100000)) + "BIW",
 					Type:      1,
 				})
 			} else if "area" == vUserReward.Reason {
@@ -1001,7 +1001,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 				}
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "BIW",
+					Reward:    fmt.Sprintf("%.4f", float64(vUserReward.Amount)/float64(100000)) + "BIW",
 					Type:      4,
 				})
 			} else if "recommend" == vUserReward.Reason {
@@ -1017,7 +1017,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 				}
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "BIW",
+					Reward:    fmt.Sprintf("%.4f", float64(vUserReward.Amount)/float64(100000)) + "BIW",
 					Type:      2,
 					Num:       vUserReward.ReasonLocationId,
 					Address:   addressTmp,
@@ -1028,37 +1028,37 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 				}
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)),
+					Reward:    fmt.Sprintf("%.4f", float64(vUserReward.Amount)/float64(100000)),
 					Type:      8,
 				})
 			} else if "four" == vUserReward.Reason {
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)),
+					Reward:    fmt.Sprintf("%.4f", float64(vUserReward.Amount)/float64(100000)),
 					Type:      3,
 				})
 			} else if "exchange" == vUserReward.Reason {
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "BIW",
+					Reward:    fmt.Sprintf("%.4f", float64(vUserReward.Amount)/float64(100000)) + "BIW",
 					Type:      5,
 				})
 			} else if "exchange_2" == vUserReward.Reason {
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "BIW",
+					Reward:    fmt.Sprintf("%.4f", float64(vUserReward.Amount)/float64(100000)) + "BIW",
 					Type:      5,
 				})
 			} else if "withdraw" == vUserReward.Reason {
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)),
+					Reward:    fmt.Sprintf("%.4f", float64(vUserReward.Amount)/float64(100000)),
 					Type:      6,
 				})
 			} else if "buy" == vUserReward.Reason {
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
-					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)),
+					Reward:    fmt.Sprintf("%.4f", float64(vUserReward.Amount)),
 					Type:      7,
 				})
 				tmpMyLocations = append(tmpMyLocations, &v1.UserInfoReply_List{
