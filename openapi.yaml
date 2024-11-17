@@ -1049,6 +1049,10 @@ components:
                     type: string
                 reward:
                     type: string
+                address:
+                    type: string
+                num:
+                    type: string
         UserInfoReply_ListWithdraw:
             type: object
             properties:

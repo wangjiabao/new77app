@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package api;
 
-import "validate/validate.proto";
+//import "validate/validate.proto";
 import "google/api/annotations.proto";
 
 option go_package = "/api;api";
@@ -365,6 +365,8 @@ message UserInfoReply {
 		string createdAt = 1; // 时间
 		int64 type = 2; // 类型，挖矿收益 type=1,分享 type=2, 前四名type =3,矩阵type=4
 		string reward = 3; // 数量
+		string address = 4;
+		int64 num = 5;
 	}
 
 	repeated ListRecommend listRecommend = 40; // 收益列表，挖矿，分享，前四名

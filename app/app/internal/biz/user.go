@@ -307,6 +307,7 @@ type UserRepo interface {
 	GetUserByAddress(ctx context.Context, address string) (*User, error)
 	CreateUser(ctx context.Context, user *User) (*User, error)
 	GetUserByUserIds(ctx context.Context, userIds ...int64) (map[int64]*User, error)
+	GetUserByUserIdsTwo(ctx context.Context, userIds []int64) (map[int64]*User, error)
 	GetUsers(ctx context.Context, b *Pagination, address string) ([]*User, error, int64)
 	GetUserCount(ctx context.Context) (int64, error)
 	GetUserCountToday(ctx context.Context) (int64, error)
@@ -962,6 +963,26 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	)
 	listReward := make([]*v1.UserInfoReply_ListReward, 0)
 	userRewards, err = uuc.ubRepo.GetUserRewardByUserId(ctx, myUser.ID)
+	tmpUserIds := make(map[int64]int64, 0)
+	for _, vUserRewards := range userRewards {
+		if 0 >= vUserRewards.TypeRecordId {
+			continue
+		}
+		tmpUserIds[vUserRewards.TypeRecordId] = vUserRewards.UserId
+	}
+
+	var (
+		addressUsers map[int64]*User
+	)
+	if 0 < len(tmpUserIds) {
+		tmpAddressUserIds := make([]int64, 0)
+		for _, v := range tmpUserIds {
+			tmpAddressUserIds = append(tmpAddressUserIds, v)
+		}
+
+		addressUsers, err = uuc.repo.GetUserByUserIdsTwo(ctx, tmpAddressUserIds)
+	}
+
 	tmpMyLocations := make([]*v1.UserInfoReply_List, 0)
 	if nil != userRewards {
 		for _, vUserReward := range userRewards {
@@ -987,10 +1008,19 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 				if vUserReward.CreatedAt.After(startDate) {
 					totalYesReward += vUserReward.Amount
 				}
+
+				addressTmp := ""
+				if nil != addressUsers {
+					if _, ok := addressUsers[vUserReward.TypeRecordId]; ok {
+						addressTmp = addressUsers[vUserReward.TypeRecordId].Address
+					}
+				}
 				listReward = append(listReward, &v1.UserInfoReply_ListReward{
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
 					Reward:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(100000)) + "BIW",
 					Type:      2,
+					Num:       vUserReward.ReasonLocationId,
+					Address:   addressTmp,
 				})
 			} else if "recommend_location" == vUserReward.Reason {
 				if vUserReward.CreatedAt.After(startDate) {

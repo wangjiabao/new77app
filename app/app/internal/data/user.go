@@ -517,18 +517,41 @@ func (u *UserRepo) GetUserCountToday(ctx context.Context) (int64, error) {
 	return count, nil
 }
 
-// GetUserByUserIds .
-func (u *UserRepo) GetUserByUserIds(ctx context.Context, userIds ...int64) (map[int64]*biz.User, error) {
+// GetUserByUserIdsTwo .
+func (u *UserRepo) GetUserByUserIdsTwo(ctx context.Context, userIds []int64) (map[int64]*biz.User, error) {
 	var users []*User
+
+	res := make(map[int64]*biz.User, 0)
 	if err := u.data.db.Table("user").Where("id IN (?)", userIds).Find(&users).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.NotFound("USER_NOT_FOUND", "user not found")
+			return res, errors.NotFound("USER_NOT_FOUND", "user not found")
 		}
 
 		return nil, errors.New(500, "USER ERROR", err.Error())
 	}
 
+	for _, item := range users {
+		res[item.ID] = &biz.User{
+			ID:      item.ID,
+			Address: item.Address,
+		}
+	}
+	return res, nil
+}
+
+// GetUserByUserIds .
+func (u *UserRepo) GetUserByUserIds(ctx context.Context, userIds ...int64) (map[int64]*biz.User, error) {
+	var users []*User
+
 	res := make(map[int64]*biz.User, 0)
+	if err := u.data.db.Table("user").Where("id IN (?)", userIds).Find(&users).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return res, errors.NotFound("USER_NOT_FOUND", "user not found")
+		}
+
+		return nil, errors.New(500, "USER ERROR", err.Error())
+	}
+
 	for _, item := range users {
 		res[item.ID] = &biz.User{
 			ID:      item.ID,
