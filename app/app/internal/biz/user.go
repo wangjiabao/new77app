@@ -2747,17 +2747,21 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 
 	// 配置
 	var (
-		configs        []*Config
-		withdrawMax    int64
-		withdrawMin    int64
-		withdrawMaxBiw int64
-		withdrawMinBiw int64
+		configs         []*Config
+		withdrawMax     int64
+		withdrawMin     int64
+		withdrawMaxBiw  int64
+		withdrawMinBiw  int64
+		withdrawOpen    string
+		withdrawOpenBiw string
 	)
 	configs, err = uuc.configRepo.GetConfigByKeys(ctx,
 		"withdraw_amount_max",
 		"withdraw_amount_max_biw",
 		"withdraw_amount_min_biw",
 		"withdraw_amount_min",
+		"withdraw_open",
+		"withdraw_open_biw",
 	)
 	if nil != configs {
 		for _, vConfig := range configs {
@@ -2776,6 +2780,12 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 			if "withdraw_amount_min_biw" == vConfig.KeyName {
 				withdrawMinBiw, _ = strconv.ParseInt(vConfig.Value+"00000", 10, 64)
 			}
+			if "withdraw_open" == vConfig.KeyName {
+				withdrawOpen = vConfig.Value
+			}
+			if "withdraw_open_biw" == vConfig.KeyName {
+				withdrawOpenBiw = vConfig.Value
+			}
 		}
 	}
 	//
@@ -2786,6 +2796,12 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 	//
 	//amountUsdt := amount / bPriceBase * bPrice
 	if "usdt" == req.SendBody.Type {
+		if "1" != withdrawOpen {
+			return &v1.WithdrawReply{
+				Status: "ok",
+			}, nil
+		}
+
 		if 35 >= len(req.SendBody.Address) || 45 < len(req.SendBody.Address) {
 			return &v1.WithdrawReply{
 				Status: "地址长度不正确",
@@ -2808,6 +2824,12 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 			}, nil
 		}
 	} else if "dhb" == req.SendBody.Type {
+		if "1" != withdrawOpenBiw {
+			return &v1.WithdrawReply{
+				Status: "ok",
+			}, nil
+		}
+
 		if userBalance.BalanceDhb < amount {
 			amount = userBalance.BalanceDhb
 		}
