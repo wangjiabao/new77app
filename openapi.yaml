@@ -647,6 +647,8 @@ components:
                     type: string
                 publicKey:
                     type: string
+                type:
+                    type: string
         FeeRewardListReply:
             type: object
             properties:
@@ -856,6 +858,11 @@ components:
                     format: double
                 balanceBiw:
                     type: string
+                balanceC:
+                    type: string
+                priceC:
+                    type: number
+                    format: double
                 biwDaily:
                     type: string
                 buyNumTwo:
@@ -909,6 +916,9 @@ components:
                 inviteUserAddress:
                     type: string
                 exchangeRate:
+                    type: number
+                    format: double
+                exchangeRateC:
                     type: number
                     format: double
                 lastLevel:

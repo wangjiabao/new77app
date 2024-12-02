@@ -104,6 +104,7 @@ type UserBalance struct {
 	AreaTotal      int64
 	FourTotal      int64
 	LocationTotal  int64
+	BalanceC       int64
 }
 
 type Withdraw struct {
@@ -234,9 +235,11 @@ type UserBalanceRepo interface {
 	WithdrawUsdt(ctx context.Context, userId int64, amount int64, tmpRecommendUserIdsInt []int64) error
 	WithdrawUsdt2(ctx context.Context, userId int64, amount int64) error
 	Exchange(ctx context.Context, userId int64, amount int64, amountUsdtSubFee int64, amountUsdt int64, locationId int64) error
+	Exchange2(ctx context.Context, userId int64, amount int64, amountUsdtSubFee int64, amountUsdt int64, locationId int64) error
 	WithdrawUsdt3(ctx context.Context, userId int64, amount int64) error
 	TranUsdt(ctx context.Context, userId int64, toUserId int64, amount int64, tmpRecommendUserIdsInt []int64, tmpRecommendUserIdsInt2 []int64) error
 	WithdrawDhb(ctx context.Context, userId int64, amount int64) error
+	WithdrawC(ctx context.Context, userId int64, amount int64) error
 	TranDhb(ctx context.Context, userId int64, toUserId int64, amount int64) error
 	GetWithdrawByUserId(ctx context.Context, userId int64, typeCoin string) ([]*Withdraw, error)
 	GetWithdrawByUserId2(ctx context.Context, userId int64) ([]*Withdraw, error)
@@ -597,6 +600,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		userBalance           *UserBalance
 		myLocations           []*v1.UserInfoReply_List
 		bPrice                int64
+		cPrice                int64
 		bPriceBase            int64
 		buyOne                int64
 		buyTwo                int64
@@ -617,6 +621,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		three                 int64
 		four                  int64
 		exchangeRate          int64
+		exchangeRateC         int64
 		lastLevel             int64 = -1
 		areaOne               int64
 		areaTwo               int64
@@ -634,6 +639,8 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	// 配置
 	configs, err = uuc.configRepo.GetConfigByKeys(ctx,
 		"b_price",
+		"c_price",
+		"exchange_rate_c",
 		"exchange_rate",
 		"b_price_base",
 		"buy_one",
@@ -657,8 +664,14 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 			if "b_price" == vConfig.KeyName {
 				bPrice, _ = strconv.ParseInt(vConfig.Value, 10, 64)
 			}
+			if "c_price" == vConfig.KeyName {
+				cPrice, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
 			if "exchange_rate" == vConfig.KeyName {
 				exchangeRate, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+			if "exchange_rate_c" == vConfig.KeyName {
+				exchangeRateC, _ = strconv.ParseInt(vConfig.Value, 10, 64)
 			}
 			if "b_price_base" == vConfig.KeyName {
 				bPriceBase, _ = strconv.ParseInt(vConfig.Value, 10, 64)
@@ -1221,8 +1234,11 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	return &v1.UserInfoReply{
 		Status:                status,
 		BiwPrice:              float64(bPrice) / float64(bPriceBase),
+		PriceC:                float64(cPrice) / float64(bPriceBase),
+		BalanceC:              fmt.Sprintf("%.2f", float64(userBalance.BalanceC)/float64(100000)) + "ISPAY",
 		Price:                 float64(bPrice) / float64(bPriceBase),
 		ExchangeRate:          float64(exchangeRate) / 1000,
+		ExchangeRateC:         float64(exchangeRateC) / 1000,
 		BalanceBiw:            fmt.Sprintf("%.2f", float64(userBalance.BalanceDhb)/float64(100000)) + "BIW",
 		BalanceUsdt:           fmt.Sprintf("%.2f", float64(userBalance.BalanceUsdt)/float64(100000)),
 		BiwDaily:              "",
@@ -2636,38 +2652,60 @@ func (uuc *UserUseCase) Exchange(ctx context.Context, req *v1.ExchangeRequest, u
 
 	// 配置
 	var (
-		configs      []*Config
-		exchangeRate int64
-		bPrice       int64
-		bPriceBase   int64
+		configs       []*Config
+		exchangeRate  int64
+		exchangeRateC int64
+		bPrice        int64
+		cPrice        int64
+		bPriceBase    int64
 	)
 	configs, err = uuc.configRepo.GetConfigByKeys(ctx,
 		"exchange_rate",
+		"exchange_rate_c",
 		"b_price",
 		"b_price_base",
+		"c_price",
 	)
 	if nil != configs {
 		for _, vConfig := range configs {
 			if "exchange_rate" == vConfig.KeyName {
 				exchangeRate, _ = strconv.ParseInt(vConfig.Value, 10, 64)
 			}
-
+			if "exchange_rate_c" == vConfig.KeyName {
+				exchangeRateC, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
 			if "b_price" == vConfig.KeyName {
 				bPrice, _ = strconv.ParseInt(vConfig.Value, 10, 64)
 			}
-
+			if "c_price" == vConfig.KeyName {
+				cPrice, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
 			if "b_price_base" == vConfig.KeyName {
 				bPriceBase, _ = strconv.ParseInt(vConfig.Value, 10, 64)
 			}
 		}
 	}
 
-	amountUsdt := int64(float64(amount) / float64(bPriceBase) * float64(bPrice))
-	amountUsdtSubFee := amountUsdt - amountUsdt*exchangeRate/1000
-	if amountUsdt <= 0 {
-		return &v1.ExchangeReply{
-			Status: "fail price",
-		}, nil
+	var (
+		amountUsdtSubFee int64
+		amountUsdt       int64
+	)
+	if "ispay" == req.SendBody.Type {
+		amountUsdt = int64(float64(amount) / float64(bPriceBase) * float64(cPrice))
+		amountUsdtSubFee = amountUsdt - amountUsdt*exchangeRateC/1000
+		if amountUsdt <= 0 {
+			return &v1.ExchangeReply{
+				Status: "fail price 2",
+			}, nil
+		}
+	} else {
+		amountUsdt = int64(float64(amount) / float64(bPriceBase) * float64(bPrice))
+		amountUsdtSubFee = amountUsdt - amountUsdt*exchangeRate/1000
+		if amountUsdt <= 0 {
+			return &v1.ExchangeReply{
+				Status: "fail price",
+			}, nil
+		}
 	}
 
 	//var (
@@ -2701,9 +2739,16 @@ func (uuc *UserUseCase) Exchange(ctx context.Context, req *v1.ExchangeRequest, u
 
 	if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
 
-		err = uuc.ubRepo.Exchange(ctx, user.ID, amount, amountUsdtSubFee, amountUsdt, 0) // 提现
-		if nil != err {
-			return err
+		if "ispay" == req.SendBody.Type {
+			err = uuc.ubRepo.Exchange2(ctx, user.ID, amount, amountUsdtSubFee, amountUsdt, 0) // 提现
+			if nil != err {
+				return err
+			}
+		} else {
+			err = uuc.ubRepo.Exchange(ctx, user.ID, amount, amountUsdtSubFee, amountUsdt, 0) // 提现
+			if nil != err {
+				return err
+			}
 		}
 
 		return nil
@@ -2728,6 +2773,8 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 		req.SendBody.Type = "usdt"
 	} else if "2" == req.SendBody.Type {
 		req.SendBody.Type = "dhb"
+	} else if "3" == req.SendBody.Type {
+		req.SendBody.Type = "ispay"
 	}
 	//u, _ = uuc.repo.GetUserById(ctx, user.ID)
 	//if nil != err {
@@ -2746,7 +2793,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 	//	return nil, errors.New(500, "密码错误", "密码错误")
 	//}
 
-	if "usdt" != req.SendBody.Type && "dhb" != req.SendBody.Type {
+	if "usdt" != req.SendBody.Type && "dhb" != req.SendBody.Type && "ispay" != req.SendBody.Type {
 		return &v1.WithdrawReply{
 			Status: "fail",
 		}, nil
@@ -2782,16 +2829,22 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 		withdrawMin     int64
 		withdrawMaxBiw  int64
 		withdrawMinBiw  int64
+		withdrawMaxC    int64
+		withdrawMinC    int64
 		withdrawOpen    string
 		withdrawOpenBiw string
+		withdrawOpenC   string
 	)
 	configs, err = uuc.configRepo.GetConfigByKeys(ctx,
 		"withdraw_amount_max",
 		"withdraw_amount_max_biw",
 		"withdraw_amount_min_biw",
 		"withdraw_amount_min",
+		"withdraw_amount_min_c",
+		"withdraw_amount_max_c",
 		"withdraw_open",
 		"withdraw_open_biw",
+		"withdraw_open_c",
 	)
 	if nil != configs {
 		for _, vConfig := range configs {
@@ -2810,11 +2863,21 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 			if "withdraw_amount_min_biw" == vConfig.KeyName {
 				withdrawMinBiw, _ = strconv.ParseInt(vConfig.Value+"00000", 10, 64)
 			}
+			if "withdraw_amount_max_c" == vConfig.KeyName {
+				withdrawMaxC, _ = strconv.ParseInt(vConfig.Value+"00000", 10, 64)
+			}
+
+			if "withdraw_amount_min_c" == vConfig.KeyName {
+				withdrawMinC, _ = strconv.ParseInt(vConfig.Value+"00000", 10, 64)
+			}
 			if "withdraw_open" == vConfig.KeyName {
 				withdrawOpen = vConfig.Value
 			}
 			if "withdraw_open_biw" == vConfig.KeyName {
 				withdrawOpenBiw = vConfig.Value
+			}
+			if "withdraw_open_c" == vConfig.KeyName {
+				withdrawOpenC = vConfig.Value
 			}
 		}
 	}
@@ -2905,6 +2968,34 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 		//		Status: "fail location max",
 		//	}, nil
 		//}
+	} else if "ispay" == req.SendBody.Type {
+		if "1" != withdrawOpenC {
+			return &v1.WithdrawReply{
+				Status: "ok",
+			}, nil
+		}
+
+		if 35 >= len(req.SendBody.Address) || 45 < len(req.SendBody.Address) {
+			return &v1.WithdrawReply{
+				Status: "地址长度不正确",
+			}, nil
+		}
+
+		if userBalance.BalanceC < amount {
+			amount = userBalance.BalanceC
+		}
+
+		if withdrawMaxC < amount {
+			return &v1.WithdrawReply{
+				Status: "fail max",
+			}, nil
+		}
+
+		if withdrawMinC > amount {
+			return &v1.WithdrawReply{
+				Status: "fail min",
+			}, nil
+		}
 	}
 
 	//if "usdt_2" == req.SendBody.Type {
@@ -2982,6 +3073,15 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 				return err
 			}
 			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount, amount, 0, req.SendBody.Type, "")
+			if nil != err {
+				return err
+			}
+		} else if "ispay" == req.SendBody.Type {
+			err = uuc.ubRepo.WithdrawC(ctx, user.ID, amount) // 提现
+			if nil != err {
+				return err
+			}
+			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount, amount, 0, req.SendBody.Type, req.SendBody.Address)
 			if nil != err {
 				return err
 			}
