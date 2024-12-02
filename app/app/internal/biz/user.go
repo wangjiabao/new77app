@@ -1891,7 +1891,7 @@ func (uuc *UserUseCase) Buy(ctx context.Context, req *v1.BuyRequest, user *User)
 		amountUsdt uint64
 		amountBiw  uint64
 	)
-	amountUsdt = amount / 2 // 半个
+	amountUsdt = amount * 70 / 100 // 半个
 	if 1 == req.SendBody.Type {
 		if amountUsdt > user.Amount {
 			return &v1.BuyReply{
