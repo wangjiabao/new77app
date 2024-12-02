@@ -1892,6 +1892,7 @@ func (uuc *UserUseCase) Buy(ctx context.Context, req *v1.BuyRequest, user *User)
 		amountBiw  uint64
 	)
 	amountUsdt = amount * 70 / 100 // 半个
+	amountSub := amount * 30 / 100
 	if 1 == req.SendBody.Type {
 		if amountUsdt > user.Amount {
 			return &v1.BuyReply{
@@ -1900,7 +1901,7 @@ func (uuc *UserUseCase) Buy(ctx context.Context, req *v1.BuyRequest, user *User)
 		}
 		coinType = "USDT"
 
-		amountBiw = amountUsdt * uint64(bPriceBase) / uint64(bPrice)
+		amountBiw = amountSub * uint64(bPriceBase) / uint64(bPrice)
 		if 0 >= amountBiw {
 			return &v1.BuyReply{
 				Status: "所需biw为0，错误",
