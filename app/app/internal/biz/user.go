@@ -35,6 +35,7 @@ type User struct {
 	IsDelete        int64
 	Out             int64
 	CreatedAt       time.Time
+	Lock            int64
 }
 
 type UserInfo struct {

@@ -27,6 +27,7 @@ type User struct {
 	UpdatedAt       time.Time `gorm:"type:datetime;not null"`
 	IsDelete        int64     `gorm:"type:int;not null"`
 	Out             int64     `gorm:"type:int;not null"`
+	Lock            int64     `gorm:"type:int;not null"`
 }
 
 type Trade struct {
@@ -431,6 +432,7 @@ func (u *UserRepo) GetUserById(ctx context.Context, Id int64) (*biz.User, error)
 		Undo:         user.Undo,
 		IsDelete:     user.IsDelete,
 		Out:          user.Out,
+		Lock:         user.Lock,
 	}, nil
 }
 

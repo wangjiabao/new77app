@@ -330,6 +330,10 @@ func (a *AppService) Exchange(ctx context.Context, req *v1.ExchangeRequest) (*v1
 		return nil, errors.New(500, "AUTHORIZE_ERROR", "用户已删除")
 	}
 
+	if 1 == user.Lock {
+		return nil, errors.New(500, "AUTHORIZE_ERROR", "用户已冻结")
+	}
+
 	var (
 		address string
 		res     bool
@@ -382,6 +386,10 @@ func (a *AppService) Buy(ctx context.Context, req *v1.BuyRequest) (*v1.BuyReply,
 
 	if 1 == user.IsDelete {
 		return nil, errors.New(500, "AUTHORIZE_ERROR", "用户已删除")
+	}
+
+	if 1 == user.Lock {
+		return nil, errors.New(500, "AUTHORIZE_ERROR", "用户已冻结")
 	}
 
 	//fmt.Println(user)
@@ -439,6 +447,10 @@ func (a *AppService) Withdraw(ctx context.Context, req *v1.WithdrawRequest) (*v1
 
 	if 1 == user.IsDelete {
 		return nil, errors.New(500, "AUTHORIZE_ERROR", "用户已删除")
+	}
+
+	if 1 == user.Lock {
+		return nil, errors.New(500, "AUTHORIZE_ERROR", "用户已冻结")
 	}
 
 	var (
