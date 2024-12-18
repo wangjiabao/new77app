@@ -2426,6 +2426,16 @@ func (uuc *UserUseCase) EthUserRecordHandle(ctx context.Context, amount uint64, 
 							break
 						}
 
+						var tmpUser *User
+						tmpUser, err = uuc.repo.GetUserById(ctx, tmpMyTopUserRecommendUserId)
+						if nil == tmpUser {
+							continue
+						}
+
+						if 1 == tmpUser.Lock {
+							continue
+						}
+
 						var myUserRecommendUserLocationsLast []*LocationNew
 						myUserRecommendUserLocationsLast, err = uuc.locationRepo.GetLocationsNewByUserId(ctx, tmpMyTopUserRecommendUserId)
 						if nil != myUserRecommendUserLocationsLast {
