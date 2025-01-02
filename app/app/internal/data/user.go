@@ -323,8 +323,8 @@ func (c *ConfigRepo) UpdateConfig(ctx context.Context, id int64, value string) (
 // UpdateUserNewTwoNew .
 func (u *UserRepo) UpdateUserNewTwoNew(ctx context.Context, userId int64, amountUsdt uint64, amountBiw uint64, coinType string) error {
 	if "USDT" == coinType {
-		res := u.data.DB(ctx).Table("user").Where("id=? and amount >= ? and amount_biw >= ?", userId, amountUsdt, amountBiw).
-			Updates(map[string]interface{}{"amount": gorm.Expr("amount - ?", amountUsdt), "amount_biw": gorm.Expr("amount_biw - ?", amountBiw)})
+		res := u.data.DB(ctx).Table("user").Where("id=? and amount >= ?", userId, amountUsdt).
+			Updates(map[string]interface{}{"amount": gorm.Expr("amount - ?", amountUsdt)})
 		if res.Error != nil {
 			return errors.New(500, "UPDATE_USER_ERROR", "用户信息修改失败")
 		}
