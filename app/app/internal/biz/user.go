@@ -2706,11 +2706,14 @@ func (uuc *UserUseCase) Exchange(ctx context.Context, req *v1.ExchangeRequest, u
 	if "ispay" == req.SendBody.Type {
 		amountUsdt = int64(float64(amount) / float64(bPriceBase) * float64(cPrice))
 		amountUsdtSubFee = amountUsdt - amountUsdt*exchangeRateC/1000
-		if amountUsdt <= 0 {
-			return &v1.ExchangeReply{
-				Status: "fail price 2",
-			}, nil
-		}
+		//if amountUsdt <= 0 {
+		//	return &v1.ExchangeReply{
+		//		Status: "fail price 2",
+		//	}, nil
+		//}
+		return &v1.ExchangeReply{
+			Status: "close",
+		}, nil
 	} else {
 		amountUsdt = int64(float64(amount) / float64(bPriceBase) * float64(bPrice))
 		amountUsdtSubFee = amountUsdt - amountUsdt*exchangeRate/1000
